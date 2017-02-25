@@ -1,5 +1,5 @@
 import sqlite3 as lite
-import sqlite_init
+from . import sqlite_init
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
@@ -7,13 +7,14 @@ parentdir = os.path.dirname(currentdir)
 
 # print parentdir
 global returnData
-returnData = {}
+
 class CustomerDetails(object):
 	"""docstring for CustomerDetails"""
 	def __init__(self):
 		super(CustomerDetails, self).__init__()
 		
 	def setData(self,data):
+		returnData = {}		
 		con = None
 		con = lite.connect(parentdir+'/bespoke.db')
 		with con:
@@ -30,10 +31,10 @@ class CustomerDetails(object):
 				selectData = (name2,phone2)
 				cur.execute(sql,selectData)
 				rows = cur.fetchone()
-				if type(rows) is list and len(rows) > 0 :
+				if type(rows) is tuple and len(rows) > 0 :
 					con.commit()
 					returnData['insert_id'] = rows[0]
-					returnData['msg'] = "Already Registered Customer"
+					returnData['msg'] = "Successfully Added.\nCustomer already Registered"
 					returnData['req'] = 'success'
 					return returnData
 
@@ -52,11 +53,37 @@ class CustomerDetails(object):
 					returnData['msg'] = "Successfully Added"
 					return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
 				returnData['msg'] = "customer Not Added. " + e.args[0]
 				return returnData
+	
+
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+			# phone = str(mobile)
+			# order_id = str(data['order_id'])
+
+			try:
+				sql = '''SELECT ''' + fields + ''' from customer_details WHERE ''' + condition
+				# selectData = (phone,)
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['cus_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
 				
 			
 class OrderDetails(object):
@@ -64,8 +91,10 @@ class OrderDetails(object):
 	def __init__(self):
 		super(OrderDetails, self).__init__()
 		# self.arg = arg
+
 	def setData(self,data,uid):
 		con = None
+		returnData = {}		
 		con = lite.connect(parentdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
@@ -77,12 +106,13 @@ class OrderDetails(object):
 			date_delivery = str(data['date_delivery'])
 			appxTrail = str(data['Approximate_trail_date'])
 			appxDelivery = str(data['Approximate_delivery_date'])
+			grand_total = int(data['grand_total'])
 
 
 			try:
 
-				sql = '''INSERT INTO order_details(customer_id, order_date, trail_date, delivery_date) VALUES(?,?,?,?);'''
-				insertData = (customer_id, date_order, date_trail, date_delivery)
+				sql = '''INSERT INTO order_details(customer_id, order_date, trail_date, delivery_date,grand_total) VALUES(?,?,?,?,?);'''
+				insertData = (customer_id, date_order, date_trail, date_delivery,grand_total)
 
 				cur.execute(sql,insertData)
 				cur.execute("SELECT last_insert_rowid()")
@@ -92,15 +122,122 @@ class OrderDetails(object):
 				
 				returnData['req'] = 'success'
 				returnData['order_id'] = rows[0]
-				returnData['msg'] = "Date Successfully Added"
+				returnData['msg'] = "Your Order id: " + str(rows[0])
 				return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
-				returnData['msg'] = "date Not Added. " + e.args[0]
+				returnData['msg'] = "Order Not Created.\n" + e.args[0]
 				return returnData
 
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")	
+			returnData = {}
+
+			# order_id = str(data['order_id'])
+			try:
+
+				sql = '''SELECT ''' + fields + ''' from order_details WHERE ''' + condition 
+				# selectData = (custId,)
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['ord_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
+
+
+class BillDetails(object):
+	"""docstring for BillDetails"""
+	def __init__(self):
+		super(BillDetails, self).__init__()
+		# self.arg = arg
+
+	def setData(self, rate, qty, total, uid):
+		con = None
+		returnData = {}		
+		insertData = []
+
+		con = lite.connect(parentdir+'/bespoke.db')
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+
+			order_id = str(uid)
+
+			for index in total:
+				data = []
+				if int(total[index]) > 0:
+					data.append(order_id)
+					data.append(index)
+					data.append(rate[index])
+					data.append(qty[index])
+					data.append(total[index])
+					data = tuple(data)
+
+					insertData.append(data)
+
+
+
+			try:
+
+				sql = '''INSERT INTO bill_details(order_id, name, rate, qty, sub_total) VALUES(?,?,?,?,?);'''
+
+				cur.executemany(sql,insertData)
+				cur.execute("SELECT last_insert_rowid()")
+
+				rows = cur.fetchone()
+				con.commit()
+				
+				returnData['req'] = 'success'
+				returnData['order_id'] = order_id
+				returnData['msg'] = "Your Bill added "
+				return returnData
+
+			except lite.Error as e:
+				# raise e
+				returnData['req'] = 'error'
+				returnData['msg'] = "Bill Not Created.\n" + e.args[0]
+				return returnData
+
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")	
+			returnData = {}
+
+			# order_id = str(data['order_id'])
+			try:
+
+				sql = '''SELECT ''' + fields + ''' from bill_details WHERE ''' + condition 
+				# selectData = (custId,)
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['bill_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
 
 
 
@@ -112,6 +249,7 @@ class MeasurementJacket(object):
 	def setData(self,data,uid):
 		con = None
 		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -142,11 +280,34 @@ class MeasurementJacket(object):
 				returnData['msg'] = "Jacket Basic Measurement Successfully Added"
 				return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
 				returnData['msg'] = "Jacket Basic Measurement Not Added. " + e.args[0]
 				return returnData
+
+
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+
+			try:
+				sql = '''SELECT ''' + fields + ''' from measurement_jacket WHERE ''' + condition
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['jack_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
 
 
 class MeasurementJacketStyle(object):
@@ -156,6 +317,7 @@ class MeasurementJacketStyle(object):
 		# self.arg = arg
 
 	def setData(self,data,order_id):
+		returnData = {}
 		style = str(data['style'])
 		lapel = str(data['lapel'])
 		vent = str(data['vent'])
@@ -180,11 +342,34 @@ class MeasurementJacketStyle(object):
 				returnData['msg'] = "Jacket Style Measurement Successfully Added"
 				return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
 				returnData['msg'] = "Jacket Style Measurement Not Added. " + e.args[0]
 				return returnData
+
+
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+
+			try:
+				sql = '''SELECT ''' + fields + ''' from measurement_jacket_style WHERE ''' + condition
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['jack_s_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
 
 
 
@@ -196,6 +381,7 @@ class MeasurementShirt(object):
 		# self.arg = arg
 
 	def setData(self,data,order_id):
+		returnData = {}
 		length = data['length']
 		shoulder = data['shoulder']
 		sleeve_length = data['sleeve_length']
@@ -204,6 +390,7 @@ class MeasurementShirt(object):
 		hip = data['hip']
 		cross_front = data['cross_front']
 		cross_back = data['cross_back']
+		neck = data['neck']
 		cuff = data['cuff']
 		arm_round = data['arm_round']
 
@@ -214,8 +401,8 @@ class MeasurementShirt(object):
 			cur.execute("PRAGMA foreign_keys = ON")
 
 			try:
-				sql = '''INSERT INTO measurement_shirt(order_id, length, shoulder, sleeve, chest, waist, hip, cross_front, cross_back, cuff, arm_round ) VALUES(?,?,?,?,?,?,?,?,?,?,?) '''
-				insertData = (order_id, length, shoulder, sleeve_length, chest, waist, hip, cross_front, cross_back, cuff, arm_round )
+				sql = '''INSERT INTO measurement_shirt(order_id, length, shoulder, sleeve, chest, waist, hip, cross_front, cross_back, neck, cuff, arm_round ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) '''
+				insertData = (order_id, length, shoulder, sleeve_length, chest, waist, hip, cross_front, cross_back, neck, cuff, arm_round )
 				cur.execute(sql,insertData)
 				con.commit()
 				
@@ -224,11 +411,34 @@ class MeasurementShirt(object):
 				returnData['msg'] = "Shirt Measurement Successfully Added"
 				return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
 				returnData['msg'] = "Shirt Measurement Not Added. " + e.args[0]
 				return returnData
+
+
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+
+			try:
+				sql = '''SELECT ''' + fields + ''' from measurement_shirt WHERE ''' + condition
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['shirt_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
 
 
 
@@ -239,6 +449,7 @@ class MeasurementShirtStyle(object):
 		# self.arg = arg
 
 	def setData(self,data,order_id):
+		returnData = {}
 		bottom = str(data['bottom'])
 		pocket = str(data['pocket'])
 		front_placket = str(data['front_placket'])
@@ -262,12 +473,34 @@ class MeasurementShirtStyle(object):
 				returnData['msg'] = "Shirt Style Measurement Successfully Added"
 				return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
 				returnData['msg'] = "Shirt Style Measurement Not Added. " + e.args[0]
 				return returnData
 
+
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+
+			try:
+				sql = '''SELECT ''' + fields + ''' from measurement_shirt_style WHERE ''' + condition
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['shirt_s_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
 
 
 
@@ -279,6 +512,7 @@ class MeasurementTrouser(object):
 		# self.arg = arg
 
 	def setData(self,data,order_id):
+		returnData = {}
 		length 	= str(data['length'])
 		inseam 	= str(data['inseam'])
 		crotch 	= str(data['crotch'])
@@ -306,12 +540,33 @@ class MeasurementTrouser(object):
 				returnData['msg'] = "Trouser Measurement Successfully Added"
 				return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
 				returnData['msg'] = "Trouser Measurement Not Added. " + e.args[0]
 				return returnData
 
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+
+			try:
+				sql = '''SELECT ''' + fields + ''' from measurement_trouser WHERE ''' + condition
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['trou_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e
 
 
 
@@ -322,6 +577,7 @@ class MeasurementTrouserStyle(object):
 		# self.arg = arg
 
 	def setData(self,data,order_id):
+		returnData = {}
 		belt		=	str(data['belt'])
 		pleat 		=	str(data['pleat'])
 		pocket 		=	str(data['pocket'])
@@ -349,10 +605,31 @@ class MeasurementTrouserStyle(object):
 				returnData['msg'] = "Trouser Style Measurement Successfully Added"
 				return returnData
 
-			except lite.Error, e:
+			except lite.Error as e:
 				# raise e
 				returnData['req'] = 'error'
 				returnData['msg'] = "Trouser Style Measurement Not Added. " + e.args[0]
 				return returnData
 
 
+	def getData(self,condition,fields=None):
+		con = None
+		con = lite.connect(parentdir+'/bespoke.db')
+		returnData = {}
+		with con:
+			cur = con.cursor()
+			cur.execute("PRAGMA foreign_keys = ON")
+
+			try:
+				sql = '''SELECT ''' + fields + ''' from measurement_trouser_style WHERE ''' + condition
+				cur.execute(sql)
+				rows = cur.fetchall()
+
+				if type(rows) is list and len(rows) > 0:
+					returnData['trou_s_data'] = rows
+					return returnData
+				else:
+					return ''
+			
+			except lite.Error as e:
+				raise e

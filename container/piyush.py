@@ -1,15 +1,33 @@
 # from PIL import ImageTk, Image
-from Tkinter import Tk,Label,Entry,Button,StringVar
-from Tkinter import Text,Checkbutton,IntVar
-import tkMessageBox
+try:
+	# Python2
+	from Tkinter import Tk,Label,Entry,Button,StringVar,tkMessageBox
+	from Tkinter import Text,Checkbutton,IntVar,Toplevel,Message,Scrollbar,RIGHT,LEFT,BOTH,END,Y,Listbox,Frame,N,S,W,E
+	from ttk import *
+except ImportError:
+	# Python3
+	from tkinter import Tk,Label,Entry,Button,StringVar,messagebox as tkMessageBox
+	from tkinter import Text,Checkbutton,IntVar,Toplevel,Message,Scrollbar,RIGHT,LEFT,BOTH,END,Y,Listbox,ttk,Frame,N,S,W,E
+
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir) 
 
+import sys
+import json
+from PIL import ImageTk,Image
+from subprocess import call
+
+try:
+	# Python2
+	from Tkinter import Tk,Frame,RAISED,LEFT,Button
+except ImportError:
+	# Python3
+	from tkinter import Tk,Frame,RAISED,LEFT,Button
+
+
 from dbconnection.models import * 
-
-
 
 
 
@@ -19,9 +37,424 @@ from dbconnection.models import *
 particulars = ['total_sherwani','total_trouser','total_3pc','total_kurta','total_safari','total_suit','total_vest_jacket','total_kurta_pyjm','total_tuxedo','total_blazer_jkt','total_overcoat','total_jodhpuri','total_churidar','total_shirt','total_extra_charges']
 rate = {}
 qty = {}
+total = {}
 shirt_measure = {}
 jacket_measure = {}
 trouser_measure = {}
+
+
+
+
+class App(Frame):
+	def __init__(self, parent, window, window2):
+		Frame.__init__(self, parent)
+
+		self.window = window
+		self.window2 = window2
+		global search_mob_no
+
+		self.parent = parent
+
+		search_mob_no = StringVar()
+
+		ordn=Label(parent,text="ORDER NO.")
+		ordn.place(x=70,y=5)
+		ordn1= Entry(parent,width=10)
+		ordn1.place(x=65,y=25)
+
+		mob_no_l = Label(parent,text="Mobile")
+		mob_no_l.place(x=205,y=5)
+		mob_no=Entry(parent,width=12,textvariable=search_mob_no)
+		mob_no.place(x=185,y=25)
+
+		Button(parent, text='Search',command= lambda: self.search(ordn1.get(), search_mob_no.get())).place(x=320,y=20)
+
+		msg = Message(self, text="")
+		msg.pack(ipady=25)
+		
+		self.CreateUI()
+		# self.LoadTable()
+
+		self.pack(anchor='se')
+		parent.grid_rowconfigure(0, weight = 1)
+		parent.grid_columnconfigure(0, weight = 1)
+
+
+	def CreateUI(self):
+		tv = ttk.Treeview(self)
+		treeScroll = ttk.Scrollbar(self)
+		treeScroll.configure(command=tv.yview)
+		tv.configure(yscrollcommand=treeScroll.set)
+
+		tv['columns'] = ('order_id','cust_name', 'mobile', 'email','order_date', 'delivery_date')
+		tv.heading("#0", text='Count', anchor='w')
+		tv.column("#0", anchor="w",width=50)
+		tv.heading('cust_name', text='Customer Name')
+		tv.column('cust_name', anchor='center', width=180)
+		tv.heading('order_id', text='Order Id')
+		tv.column('order_id', anchor='center', width=60)
+		tv.heading('mobile', text='Contact')
+		tv.column('mobile', anchor='center', width=100)
+		tv.heading('email', text='Email')
+		tv.column('email', anchor='center', width=250)
+		tv.heading('order_date', text='Order Date')
+		tv.column('order_date', anchor='center', width=100)
+		tv.heading('delivery_date', text='Del. Date')
+		tv.column('delivery_date', anchor='center', width=100)
+		# tv.grid(sticky = (N,S,W,E))
+		tv.pack(anchor='se')
+		self.treeview = tv
+		self.grid_rowconfigure(0, weight = 1)
+		self.grid_columnconfigure(0, weight = 1)
+
+	def OnDoubleClick(self, event):
+		item = self.treeview.focus()
+		order_id = self.treeview.item(item,"values")[0]
+		fields = "*"
+		condition = "order_id = " + order_id
+
+		self.window.clearVar()
+		
+		editOrder.set(order_id)
+
+		ord_o = self.order.getData(condition,fields)
+		if ord_o != '':
+			ord_data = {}
+			for order in ord_o['ord_data'] :
+				ord_data['customer_id'] = order[0]
+				# ord_data['order_id'] = order[1]
+				# ord_data['order_date'] = order[2]
+				# ord_data['trail_date'] = order[3]
+				# ord_data['delivery_date'] =  order[4]
+
+				ord_date.set(order[2])
+				trail_date.set(order[3])
+				deli_date.set(order[4])
+				total_grand.set(order[5])
+
+			Bill = BillDetails()
+			bill_data = Bill.getData(condition,fields)
+			if bill_data != '':
+
+				for bill in bill_data['bill_data']:
+					if bill[1] == 'sherwani':
+						rate_sherwani.set(bill[2])
+						qty_sherwani.set(bill[3])
+						total_sherwani.set(bill[4])
+					elif bill[1] == 'trouser':
+						rate_trouser.set(bill[2])
+						qty_trouser.set(bill[3])
+						total_trouser.set(bill[4])
+					elif bill[1] == '3pc':
+						rate_3pc.set(bill[2])
+						qty_3pc.set(bill[3])
+						total_3pc.set(bill[4])
+					elif bill[1] == 'kurta':
+						rate_kurta.set(bill[2])
+						qty_kurta.set(bill[3])
+						total_kurta.set(bill[4])
+					elif bill[1] == 'safari':
+						rate_safari.set(bill[2])
+						qty_safari.set(bill[3])
+						total_safari.set(bill[4])
+					elif bill[1] == 'suit':
+						rate_suit.set(bill[2])
+						qty_suit.set(bill[3])
+						total_suit.set(bill[4])
+					elif bill[1] == 'vest_jacket':
+						rate_vest_jacket.set(bill[2])
+						qty_vest_jacket.set(bill[3])
+						total_vest_jacket.set(bill[4])
+					elif bill[1] == 'kurta_pyjm':
+						rate_kurta_pyjm.set(bill[2])
+						qty_kurta_pyjm.set(bill[3])
+						total_kurta_pyjm.set(bill[4])
+					elif bill[1] == 'tuxedo':
+						rate_tuxedo.set(bill[2])
+						qty_tuxedo.set(bill[3])
+						total_tuxedo.set(bill[4])
+					elif bill[1] == 'blazer_jkt':
+						rate_blazer_jkt.set(bill[2])
+						qty_blazer_jkt.set(bill[3])
+						total_blazer_jkt.set(bill[4])
+					elif bill[1] == 'overcoat':
+						rate_overcoat.set(bill[2])
+						qty_overcoat.set(bill[3])
+						total_overcoat.set(bill[4])
+					elif bill[1] == 'jodhpuri':
+						rate_jodhpuri.set(bill[2])
+						qty_jodhpuri.set(bill[3])
+						total_jodhpuri.set(bill[4])
+					elif bill[1] == 'churidar':
+						rate_churidar.set(bill[2])
+						qty_churidar.set(bill[3])
+						total_churidar.set(bill[4])
+					elif bill[1] == 'shirt':
+						rate_shirt.set(bill[2])
+						qty_shirt.set(bill[3])
+						total_shirt.set(bill[4])
+					elif bill[1] == 'extra_charges':
+						rate_extra_charges.set(bill[2])
+						qty_extra_charges.set(bill[3])
+						total_extra_charges.set(bill[4])
+
+
+			Jacket = MeasurementJacket()
+			jack_data = Jacket.getData(condition,fields)
+
+			for jack in jack_data['jack_data']:
+				Length1.set(jack[3])
+				Shoulder1.set(jack[4])
+				Sleeve1.set(jack[5])
+				Chest1.set(jack[6])
+				Waist1.set(jack[7])
+				Hip1.set(jack[8])
+				Neck1.set(jack[9])
+				Half1.set(jack[10])
+				Cross_back1.set(jack[11])
+				Cross_front1.set(jack[12])
+				Bicep1.set(jack[13])
+				Arm1.set(jack[14])
+
+			jacketStyle = MeasurementJacketStyle()
+			jack_s_data = jacketStyle.getData(condition,fields)
+
+			for jack_s in jack_s_data['jack_s_data']:
+
+				style1.delete('1.0','end-1c')
+				style1.insert('1.0',jack_s[1])
+
+				d = json.loads(jack_s[2].replace("'","\""))
+				jacket_lapel_peak.set(d['peak'])
+				jacket_lapel_natch.set(d['natch'])
+				jacket_lapel_shawl.set(d['Shawl'])
+
+				d = json.loads(jack_s[3].replace("'","\""))				
+				jacket_vent_center.set(d['center'])
+				jacket_vent_side.set(d['side'])
+				jacket_vent_no.set(d['no'])
+
+				d = json.loads(jack_s[4].replace("'","\""))
+				jacket_pocket_straight.set(d['straight'])
+				jacket_pocket_slant.set(d['slant'])
+				jacket_pocket_patch.set(d['patch'])
+				jacket_pocket_ticket.set(d['ticket'])
+
+				d = json.loads(jack_s[5].replace("'","\""))
+				jacket_fit_regular.set(d['regular'])
+				jacket_fit_slim.set(d['slim'])
+
+				d = json.loads(jack_s[6].replace("'","\""))
+				jacket_sleeveplacket_functional.set(d['vent'])
+				jacket_sleeveplacket_functional.set(d['functional'])
+
+
+
+			Shirt = MeasurementShirt()
+			shirt_data = Shirt.getData(condition,fields)
+
+			for shirt in shirt_data['shirt_data']:
+				Length3.set(shirt[1])
+				Shoulder3.set(shirt[2])
+				Sleeve3.set(shirt[3])
+				Chest3.set(shirt[4])
+				Waist3.set(shirt[5])
+				Hip3.set(shirt[6])
+				Cross_Front3.set(shirt[7])
+				Cross_Back3.set(shirt[8])
+				Neck3.set(shirt[9])
+				Cuff3.set(shirt[10])
+				Arm_Round3.set(shirt[11])
+
+			shirtStyle = MeasurementShirtStyle()
+			shirt_s_data = shirtStyle.getData(condition,fields)
+
+			for shirt_s in shirt_s_data['shirt_s_data']:
+				d = json.loads(shirt_s[1].replace("'","\""))
+				shirt_bottom_cut.set(d['cut'])
+				shirt_bottom_hook.set(d['hook'])
+				shirt_bottom_long.set(d['long'])
+
+				d = json.loads(shirt_s[2].replace("'","\""))
+				shirt_pocket_1.set(d['1'])
+				shirt_pocket_2.set(d['2'])
+				shirt_pocket_no.set(d['no'])
+				shirt_pocket_chisel.set(d['chisel'])
+				shirt_pocket_withflap.set(d['with_flap'])
+				shirt_pocket_v.set(d['v'])
+
+				d = json.loads(shirt_s[3].replace("'","\""))
+				shirt_frontpocket_plain.set(d['plain'])
+				shirt_frontpocket_box.set(d['box'])
+				shirt_frontpocket_plainfuse.set(d['plain_fuse'])
+				shirt_frontpocket_concealed.set(d['concealed'])
+
+				d = json.loads(shirt_s[4].replace("'","\""))
+				shirt_back_sidepleat.set(d['side_pleat'])
+				shirt_back_bocpleat.set(d['boc_pleat'])
+				shirt_back_dart.set(d['dart'])
+				shirt_back_plain.set(d['plain'])
+
+				Ready_Frontinput.delete('1.0','end-1c')
+				Ready_Frontinput.insert('1.0',shirt_s[5])
+
+
+			Trouser = MeasurementTrouser()
+			trou_data = Trouser.getData(condition,fields)
+			for trou in trou_data['trou_data']:
+				Length2.set(trou[1])
+				Inseam2.set(trou[2])
+				Crotch2.set(trou[3])
+				Waist2.set(trou[4])
+				Hip2.set(trou[5])
+				Thigh2.set(trou[6])
+				Knee2.set(trou[7])
+				Bottom2.set(trou[8])
+				F_Low2.set(trou[9])
+
+			trouserStyle = MeasurementTrouserStyle()
+			trou_s_data = trouserStyle.getData(condition,fields)
+			for trou_s in trou_s_data['trou_s_data']:
+				d = json.loads(trou_s[1].replace("'","\""))
+				trouser_belt_cut.set(d['cut'])
+				trouser_belt_vshape.set(d['v_shape'])
+				trouser_belt_button.set(d['button'])
+				trouser_belt_long.set(d['long'])
+				trouser_belt_hook.set(d['hook'])
+				trouser_belt_square.set(d['square'])
+				trouser_belt_round.set(d['round'])
+
+				d = json.loads(trou_s[2].replace("'","\""))
+				trouser_pleat_single.set(d['single'])
+				trouser_pleat_double.set(d['double'])
+				trouser_pleat_flat.set(d['flat'])
+
+				d = json.loads(trou_s[3].replace("'","\""))
+				trouser_pocket_mobile.set(d['mobile'])
+				trouser_pocket_l.set(d['l_pocket'])
+				trouser_pocket_straight.set(d['straight'])
+				trouser_pocket_coin.set(d['coin'])
+				trouser_pocket_cross.set(d['cross'])
+
+				d = json.loads(trou_s[4].replace("'","\""))
+				trouser_backpocket_1.set(d['1'])
+				trouser_backpocket_2.set(d['2'])
+				trouser_backpocket_no.set(d['no'])
+				trouser_backpocket_loop.set(d['loop'])
+				trouser_backpocket_kaaj.set(d['kaaj'])
+				trouser_backpocket_flap.set(d['flap'])
+
+				d = json.loads(trou_s[5].replace("'","\""))
+				trouser_bottom_plain.set(d['plain'])
+				trouser_bottom_slant.set(d['slant'])
+				trouser_bottom_turnup.set(d['turnup'])
+
+				# d = json.loads(trou_s[6].replace("'","\""))
+				Loopsinput.delete('1.0','end-1c')
+				Loopsinput.insert('1.0',trou_s[6])
+
+				d = json.loads(trou_s[7].replace("'","\""))
+				trouser_fit_regular.set(d['regular'])
+				trouser_fit_slim.set(d['slim'])
+				trouser_fit_tapered.set(d['tapered'])
+
+				Sizeinput.delete('1.0','end-1c')
+				Sizeinput.insert('1.0',trou_s[8])
+
+				d = json.loads(trou_s[9].replace("'","\""))
+				trouser_bottom_full.set(d['full_fb'])
+				trouser_bottom_half.set(d['half_fb'])
+				trouser_bottom_knee.set(d['knee'])
+
+			# print(jack_data)
+			# print(jack_s_data)
+			# print(shirt_data)
+			# print(shirt_s_data)
+			# print(trou_data)
+			# print(trou_s_data)
+
+			# xtop = Toplevel()
+			# msg = Message(xtop, text= "you clicked on " + ord_data)
+			# msg.pack()
+
+			fields = "name, phone, email, address "
+			condition = "uid = " + str(ord_data['customer_id'])
+
+			cus_o = self.cust.getData(condition,fields)
+			if cus_o != '':
+				cus_data = {}
+				for customer in cus_o['cus_data']:
+					cus_data['name'] = customer[0]
+					cus_data['phone'] = customer[1]
+					cus_data['email'] = customer[2]
+					cus_data['address'] = customer[3]
+
+					cus_name.set(customer[0])
+					cus_mobile.set(customer[1])
+					cus_email.set(customer[2])
+					cus_address.set(customer[3])
+
+			self.window.edit()
+			# self.window2.destroy()
+
+			self.parent.destroy()
+
+			# self.window.printbill()
+
+
+	def search(self, orderId, mobile_no):
+		self.cust = CustomerDetails()
+		self.order = OrderDetails()
+
+		self.treeview.delete(*self.treeview.get_children())
+
+		if orderId != '':
+			fields = "order_id, customer_id, order_date, delivery_date, trail_date"
+			condition = "order_id = " + str(orderId)
+			data_o = self.order.getData(condition,fields)
+			i = 1;
+			if data_o != '':
+				for ord_data in data_o['ord_data']:
+					fields = "name, phone, email"
+					condition = "uid = " + str(ord_data[1])
+					cus_data = self.cust.getData(condition, fields)
+					if cus_data != '':
+						data_c = cus_data['cus_data']
+						for data in data_c:
+							self.treeview.insert('', 'end', text=i, values=(ord_data[0],data[0], data[1], data[2],ord_data[2] ,ord_data[3] ))
+							i = i+1
+		else:
+			fields = "uid, name, phone, email"
+			condition = "phone LIKE '%" + str(mobile_no) + "%'"
+
+			cus_data = self.cust.getData(condition, fields)
+
+			if cus_data != '':
+				data_c = cus_data['cus_data']
+
+
+				i=1
+				for data in data_c:
+					fields = "order_id, customer_id, order_date, delivery_date, trail_date"
+					condition = "customer_id = "+ str(data[0])
+
+					data_o = self.order.getData(condition,fields)
+
+					if data_o != '':
+						for ord_data in data_o['ord_data']:
+							self.treeview.insert('', 'end', text=i, values=(ord_data[0],data[1], data[2], data[3],ord_data[2] ,ord_data[3] ))
+							i = i+1
+					else:
+						self.treeview.insert('', 'end', text=i, values=( "", data[1], data[2], data[3],"" ,"" ))
+						i = i+1
+
+		self.treeview.bind("<Double-1>",self.OnDoubleClick)
+
+
+	def LoadTable(self):
+		rate_sherwani.set(100)
+		cus_name.set("piyush")
+
 
 class FullScreenApp(object):
 
@@ -34,17 +467,32 @@ class FullScreenApp(object):
 		total_g = int(total_sherwani.get()) + int(total_trouser.get()) + int(total_3pc.get()) + int(total_kurta.get()) + int(total_suit.get()) + int(total_safari.get()) + int(total_tuxedo.get()) +  int(total_vest_jacket.get()) +  int(total_kurta_pyjm.get()) +  int(total_blazer_jkt.get()) +  int(total_overcoat.get()) +  int(total_jodhpuri.get()) +  int(total_churidar.get()) +  int(total_shirt.get()) +  int(total_extra_charges.get())
 		total_grand.set(total_g)
 
-	def __init__(self, mainwin, root, **kwargs):
-		global e1,e2,e3,e4,e5,e6,e7,e13,e14, total_grand, total_sherwani,total_trouser,total_3pc,total_kurta,total_suit,total_safari,total_tuxedo, total_vest_jacket, total_kurta_pyjm, total_blazer_jkt, total_overcoat, total_jodhpuri, total_churidar, total_shirt, total_extra_charges		
+	def search(self):
+		top = Toplevel()
+		top.title("Search Wizard")
+		App(top,self,self.main1)
+		button = Button(top, text="Dismiss", command=top.destroy)
+		button.pack()
+
+	def __init__(self, mainwin, root, main1, **kwargs):
+		global cus_name,cus_email,cus_mobile,cus_address,ord_date,deli_date, trail_date, editOrder
+		global total_grand, total_sherwani,total_trouser,total_3pc,total_kurta,total_suit,total_safari,total_tuxedo, total_vest_jacket, total_kurta_pyjm, total_blazer_jkt, total_overcoat, total_jodhpuri, total_churidar, total_shirt, total_extra_charges		
 		global rate_sherwani, rate_trouser, rate_3pc, rate_kurta, rate_safari, rate_suit, rate_vest_jacket, rate_kurta_pyjm, rate_tuxedo, rate_blazer_jkt, rate_overcoat, rate_jodhpuri, rate_churidar, rate_shirt, rate_extra_charges
 		global qty_sherwani, qty_trouser, qty_3pc, qty_kurta, qty_safari, qty_suit, qty_vest_jacket, qty_kurta_pyjm, qty_tuxedo, qty_blazer_jkt, qty_overcoat, qty_jodhpuri, qty_churidar, qty_shirt, qty_extra_charges
-		siz = -50
-		wid = 0
 
-		# for widget in mainwin.winfo_children():
-		# 	widget.pack_forget()
-		# 	widget.grid_forget()
-		# 	widget.place_forget()
+		self.root = root
+		self.mainwin = mainwin
+		self.main1 = main1
+
+		cus_name = StringVar()
+		cus_email = StringVar()
+		# cus_mobile = IntVar()
+		cus_mobile = StringVar()
+		cus_address = StringVar()
+
+		ord_date = StringVar()
+		trail_date = StringVar()
+		deli_date = StringVar()
 
 		rate_sherwani = StringVar()
 		qty_sherwani = StringVar()
@@ -105,6 +553,8 @@ class FullScreenApp(object):
 		rate_extra_charges = StringVar()
 		qty_extra_charges = StringVar()
 		total_extra_charges = StringVar()
+
+		editOrder = StringVar()
 
 		total_sherwani.set(0),total_trouser.set(0),total_3pc.set(0),total_kurta.set(0),total_suit.set(0),total_safari.set(0),total_tuxedo.set(0), total_vest_jacket.set(0), total_kurta_pyjm.set(0), total_blazer_jkt.set(0), total_overcoat.set(0), total_jodhpuri.set(0), total_churidar.set(0), total_shirt.set(0), total_extra_charges.set(0)
 
@@ -167,45 +617,246 @@ class FullScreenApp(object):
 		qty_extra_charges.trace("w", lambda name, index, mode, qty_extra_charges=qty_extra_charges: self.callback(rate_extra_charges,qty_extra_charges,total_extra_charges))
 
 
-		orderno=Label(mainwin,text="ORDER NO.")
-		orderno.place(x=500,y=320)
-		orderno1= Entry(mainwin,width=wid+10)
-		orderno1.place(x=500,y=340)
-		Button(mainwin, text='Search',height=1).place(x=500,y=370)
+	def clearWindow(self):
+		for widget in self.winfo_children():
+			widget.pack_forget()
+			widget.grid_forget()
+			widget.place_forget()
+
+	def clearVar(self):
+		cus_name.set('')
+		cus_email.set('')
+		cus_address.set('')
+		cus_mobile.set('')
+		ord_date.set('')
+		trail_date.set('')
+		deli_date.set('')
+
+		rate_sherwani.set('')
+		qty_sherwani.set('')
+		total_sherwani.set(0)
+
+		rate_trouser.set('')
+		qty_trouser.set('')
+		total_trouser.set(0)
+
+		rate_3pc.set('')
+		qty_3pc.set('')
+		total_3pc.set(0)
+
+		rate_kurta.set('')
+		qty_kurta.set('')
+		total_kurta.set(0)
+
+		rate_safari.set('')
+		qty_safari.set('')
+		total_safari.set(0)
+
+		rate_suit.set('')
+		qty_suit.set('')
+		total_suit.set(0)
+
+		rate_vest_jacket.set('')
+		qty_vest_jacket.set('')
+		total_vest_jacket.set(0)
+
+		rate_kurta_pyjm.set('')
+		qty_kurta_pyjm.set('')
+		total_kurta_pyjm.set(0)
+
+		rate_tuxedo.set('')
+		qty_tuxedo.set('')
+		total_tuxedo.set(0)
+
+		rate_blazer_jkt.set('')
+		qty_blazer_jkt.set('')
+		total_blazer_jkt.set(0)
+
+		rate_overcoat.set('')
+		qty_overcoat.set('')
+		total_overcoat.set(0)
+
+		rate_jodhpuri.set('')
+		qty_jodhpuri.set('')
+		total_jodhpuri.set(0)
+
+		rate_churidar.set('')
+		qty_churidar.set('')
+		total_churidar.set(0)
+
+		rate_shirt.set('')
+		qty_shirt.set('')
+		total_shirt.set(0)
+
+		rate_extra_charges.set('')
+		qty_extra_charges.set('')
+		total_extra_charges.set(0)	
+
+		total_grand.set(0)
+
+		Length1.set('')
+		Sleeve1.set('')
+		Shoulder1.set('')
+		Chest1.set('')
+		Waist1.set('')
+		Hip1.set('')
+		Neck1.set('')
+		Half1.set('')
+		Cross_front1.set('')
+		Cross_back1.set('')
+		Bicep1.set('')
+		Arm1.set('')
+
+		Length2.set('')
+		Inseam2.set('')
+		Crotch2.set('')
+		Waist2.set('')
+		Hip2.set('')
+		Thigh2.set('')
+		Knee2.set('')
+		Bottom2.set('')
+		F_Low2.set('')
+
+
+
+		Length3.set('')
+		Sleeve3.set('')
+		Shoulder3.set('')
+		Chest3.set('')
+		Waist3.set('')
+		Hip3.set('')
+		Cross_Front3.set('')
+		Cross_Back3.set('')
+		Neck3.set('')
+		Cuff3.set('')
+		Arm_Round3.set('')
+
+		style1.delete('1.0','end-1c')
+		Ready_Frontinput.delete('1.0','end-1c')
+		Loopsinput.delete('1.0','end-1c')
+		Sizeinput.delete('1.0','end-1c')
+
+		jacket_lapel_peak.set(0)
+		jacket_lapel_natch.set(0)
+		jacket_lapel_shawl.set(0)
+		jacket_vent_no.set(0)
+		jacket_vent_side.set(0)
+		jacket_vent_center.set(0)
+		jacket_pocket_straight.set(0)
+		jacket_pocket_slant.set(0)
+		jacket_pocket_patch.set(0)
+		jacket_pocket_ticket.set(0)
+		jacket_fit_regular.set(0)
+		jacket_fit_slim.set(0)
+		jacket_sleeveplacket_vent.set(0)
+		jacket_sleeveplacket_functional.set(0)
+
+		trouser_belt_cut.set(0)
+		trouser_belt_long.set(0)
+		trouser_belt_hook.set(0)
+		trouser_belt_button.set(0)
+		trouser_belt_square.set(0)
+		trouser_belt_round.set(0)
+		trouser_belt_vshape.set(0)
+		trouser_pleat_single.set(0)
+		trouser_pleat_double.set(0)
+		trouser_pleat_flat.set(0)
+		trouser_pocket_cross.set(0)
+		trouser_pocket_straight.set(0)
+		trouser_pocket_l.set(0)
+		trouser_pocket_mobile.set(0)
+		trouser_pocket_coin.set(0)
+		trouser_backpocket_1.set(0)
+		trouser_backpocket_2.set(0)
+		trouser_backpocket_no.set(0)
+		trouser_backpocket_loop.set(0)
+		trouser_backpocket_kaaj.set(0)
+		trouser_backpocket_flap.set(0)
+		trouser_bottom_plain.set(0)
+		trouser_bottom_slant.set(0)
+		trouser_bottom_turnup.set(0)
+		trouser_bottom_lining.set(0)
+		trouser_bottom_knee.set(0)
+		trouser_bottom_half.set(0)
+		trouser_bottom_full.set(0)
+		trouser_fit_regular.set(0)
+		trouser_fit_slim.set(0)
+		trouser_fit_tapered.set(0)
+
+
+		shirt_bottom_cut.set(0)
+		shirt_bottom_long.set(0)
+		shirt_bottom_hook.set(0)
+		shirt_pocket_1.set(0)
+		shirt_pocket_2.set(0)
+		shirt_pocket_no.set(0)
+		shirt_pocket_v.set(0)
+		shirt_pocket_chisel.set(0)
+		shirt_pocket_withflap.set(0)
+		shirt_frontpocket_plain.set(0)
+		shirt_frontpocket_box.set(0)
+		shirt_frontpocket_plainfuse.set(0)
+		shirt_frontpocket_concealed.set(0)
+		shirt_back_plain.set(0)
+		shirt_back_sidepleat.set(0)
+		shirt_back_bocpleat.set(0)
+		shirt_back_dart.set(0)	
+
+
+		editOrder.set('')
+
+	def create(self,mainwin):
+
+		for widget in self.mainwin.winfo_children():
+			widget.pack_forget()
+			widget.grid_forget()
+			widget.place_forget()
+
+		siz = -50
+		wid = 0
+		global e13,e14
+
+		self.clearVar()
+
+		# orderno=Label(mainwin,text="ORDER NO.")
+		# orderno.place(x=500,y=320)
+		# orderno1= Entry(mainwin,width=wid+10)
+		# orderno1.place(x=500,y=340)
+		Button(mainwin, text='Search',height=1,command= lambda: self.search()).place(x=500,y=370)
 
 		l1=Label(mainwin,text="Costomer Name")
 		l1.place(x=10,y=siz+60)
-		e1= Entry(mainwin,width=wid+30)
+		e1= Entry(mainwin,width=wid+30,textvariable=cus_name)
 		e1.place(x=120,y=siz+60)
 
 		l2=Label(mainwin,text="Address")
 		l2.place(x=10,y=siz+90)
-		e2 = Entry(mainwin,width=wid+30)
+		e2 = Entry(mainwin,width=wid+30,textvariable=cus_address)
 		e2.place(x=120,y=siz+90)
 
 		l3=Label(mainwin,text="Email Id")
 		l3.place(x=10,y=siz+150)
-		e3= Entry(mainwin,width=wid+30)
+		e3= Entry(mainwin,width=wid+30,textvariable=cus_email)
 		e3.place(x=120,y=siz+150)
 
 		l4=Label(mainwin,text="Phone no.")
 		l4.place(x=380,y=siz+60)
-		e4= Entry(mainwin,width=wid+22)
+		e4= Entry(mainwin,width=wid+22,textvariable=cus_mobile)
 		e4.place(x=470,y=siz+60)
 
 		l5=Label(mainwin,text="Order date")
 		l5.place(x=380,y=siz+90)
-		e5= Entry(mainwin,width=wid+22)
+		e5= Entry(mainwin,width=wid+22,textvariable=ord_date)
 		e5.place(x=470,y=siz+90)
 
 		l6=Label(mainwin,text="Trail date")
 		l6.place(x=380,y=siz+120)
-		e6= Entry(mainwin,width=wid+22)
+		e6= Entry(mainwin,width=wid+22,textvariable=trail_date)
 		e6.place(x=470,y=siz+120)
 
 		l7=Label(mainwin,text="Delivery date")
 		l7.place(x=380,y=siz+150)
-		e7= Entry(mainwin,width=wid+22)
+		e7= Entry(mainwin,width=wid+22,textvariable=deli_date)
 		e7.place(x=470,y=siz+150)
 
 		l8=Label(mainwin,text="PU")
@@ -409,17 +1060,257 @@ class FullScreenApp(object):
 		e14= Entry(mainwin,width=wid+10)
 		e14.place(x=220,y=siz+720)
 
+		Button(self.mainwin, text='Save',height=2,width=5 ,command= lambda: setCustomerDetails(self.root)).place(x=450,y=650)
+		Button(self.mainwin, text='Cancel',height=2,width=9, command=self.root.destroy).place(x=520,y=650)
+
 		# Button(mainwin, text='>>>>',height=2,width=wid+5, command=setCustomerDetails ).place(x=520,y=490)
 
+	def edit(self):
+		siz = -50
+		wid = 0
+		# self.create(self.mainwin)
+
+		orderno=Label(self.mainwin,text="ORDER NO.")
+		orderno.place(x=500,y=320)
+		orderno1= Entry(self.mainwin,width=wid+10,textvariable=editOrder)
+		orderno1.place(x=500,y=340)
+
+		Button(self.mainwin, text='Print',height=2,width=5, command=lambda: self.printbill()).place(x=450,y=650)
+		Button(self.mainwin, text='New Order',height=2,width=9, command=lambda: self.create(self.mainwin)).place(x=520,y=650)
+
+	def printbill(self):
+		# call(["gnome-screenshot" , "-f" , "/home/piyush/bill.jpg"])
+		f = open(os.path.join(os.path.join(parentdir,"bills"),editOrder.get().strip()+".txt"),'w')
+		# print(f)
+		for j in range(1,20):
+			for i in range(1,80):
+				f.write(" ")
+			f.write("\n")
+		f.seek(0)
+		f.write("Order No.. " + editOrder.get().strip())
+		f.seek(80)
+		last_pos = f.tell()
+		f.write("Name.... " + cus_name.get().strip())
+		f.seek(last_pos + 45)
+		f.write("Order Date... " + ord_date.get().strip())
+		f.seek(160)
+		last_pos = f.tell()
+		f.write("Email... " + cus_email.get().strip())
+		f.seek(last_pos + 45)
+		f.write("Trail Date... " + trail_date.get().strip())
+		f.seek(240)
+		last_pos = f.tell()
+		f.write("Mobile.. " + cus_mobile.get().strip())
+		f.seek(last_pos + 45)
+		f.write("Delivery date " + deli_date.get().strip())
+		f.seek(320)
+		f.write("Address..:" + cus_address.get())
+		f.seek(400)
+
+		# f.write("\n\n")
+		f.seek(f.tell() + 2*80)
+		pos = f.tell()
+		f.seek(pos + 20)
+		f.write("BILL DETAILS")
+		f.seek(640)
+		pos = f.tell()
+		f.write("Particulars")
+		f.seek(pos + 30)
+		f.write("Rate")
+		f.seek(pos + 40)
+		f.write("Qty")
+		f.seek(pos + 50)
+		f.write("Total")
+		f.seek(pos + 2*80)
+		# f.write("\n")
+
+		if int(total_sherwani.get()) > 0:
+			pos = f.tell()
+			f.write("Sherwani")
+			f.seek(pos + 30)
+			f.write(rate_sherwani.get())
+			f.seek(pos + 40)
+			f.write(qty_sherwani.get())
+			f.seek(pos + 50)
+			f.write(total_sherwani.get())
+			f.seek(pos + 80)
+
+		if int(total_trouser.get()) > 0:
+			pos = f.tell()
+			f.write("Trouser")
+			f.seek(pos + 30)
+			f.write(rate_trouser.get())
+			f.seek(pos + 40)
+			f.write(qty_trouser.get())
+			f.seek(pos + 50)
+			f.write(total_trouser.get())
+			f.seek(pos + 80)
+		
+		if int(total_3pc.get()) > 0:
+			pos = f.tell()
+			f.write("3PC")
+			f.seek(pos + 30)
+			f.write(rate_3pc.get())
+			f.seek(pos + 40)
+			f.write(qty_3pc.get())
+			f.seek(pos + 50)
+			f.write(total_3pc.get())
+			f.seek(pos + 80)
+		
+		if int(total_kurta.get()) > 0:
+			pos = f.tell()
+			f.write("KURTA")
+			f.seek(pos + 30)
+			f.write(rate_kurta.get())
+			f.seek(pos + 40)
+			f.write(qty_kurta.get())
+			f.seek(pos + 50)
+			f.write(total_kurta.get())
+			f.seek(pos + 80)
+		
+		if int(total_safari.get()) > 0:
+			pos = f.tell()
+			f.write("SAFARI")
+			f.seek(pos + 30)
+			f.write(rate_safari.get())
+			f.seek(pos + 40)
+			f.write(qty_safari.get())
+			f.seek(pos + 50)
+			f.write(total_safari.get())
+			f.seek(pos + 80)
+		
+
+		if int(total_suit.get()) > 0:
+			pos = f.tell()
+			f.write("SUIT")
+			f.seek(pos + 30)
+			f.write(rate_suit.get())
+			f.seek(pos + 40)
+			f.write(qty_suit.get())
+			f.seek(pos + 50)
+			f.write(total_suit.get())
+			f.seek(pos + 80)
+		
+		if int(total_vest_jacket.get()) > 0:
+			pos = f.tell()
+			f.write("VEST-JACKET")
+			f.seek(pos + 30)
+			f.write(rate_vest_jacket.get())
+			f.seek(pos + 40)
+			f.write(qty_vest_jacket.get())
+			f.seek(pos + 50)
+			f.write(total_vest_jacket.get())
+			f.seek(pos + 80)
+		
+		if int(total_kurta_pyjm.get()) > 0:
+			pos = f.tell()
+			f.write("KURTA-PYJM")
+			f.seek(pos + 30)
+			f.write(rate_kurta_pyjm.get())
+			f.seek(pos + 40)
+			f.write(qty_kurta_pyjm.get())
+			f.seek(pos + 50)
+			f.write(total_kurta_pyjm.get())
+			f.seek(pos + 80)
+		
+		if int(total_tuxedo.get()) > 0:
+			pos = f.tell()
+			f.write("TUXEDO")
+			f.seek(pos + 30)
+			f.write(rate_tuxedo.get())
+			f.seek(pos + 40)
+			f.write(qty_tuxedo.get())
+			f.seek(pos + 50)
+			f.write(total_tuxedo.get())
+			f.seek(pos + 80)
+
+		if int(total_blazer_jkt.get()) > 0:
+			pos = f.tell()
+			f.write("BLAZER")
+			f.seek(pos + 30)
+			f.write(rate_blazer_jkt.get())
+			f.seek(pos + 40)
+			f.write(qty_blazer_jkt.get())
+			f.seek(pos + 50)
+			f.write(total_blazer_jkt.get())
+			f.seek(pos + 80)
+		
+		if int(total_overcoat.get()) > 0:
+			pos = f.tell()
+			f.write("OVERCOAT")
+			f.seek(pos + 30)
+			f.write(rate_overcoat.get())
+			f.seek(pos + 40)
+			f.write(qty_overcoat.get())
+			f.seek(pos + 50)
+			f.write(total_overcoat.get())
+			f.seek(pos + 80)
+		
+		if int(total_jodhpuri.get()) > 0:
+			pos = f.tell()
+			f.write("JODHPURI")
+			f.seek(pos + 30)
+			f.write(rate_jodhpuri.get())
+			f.seek(pos + 40)
+			f.write(qty_jodhpuri.get())
+			f.seek(pos + 50)
+			f.write(total_jodhpuri.get())
+			f.seek(pos + 80)
+		
+		if int(total_churidar.get()) > 0:
+			pos = f.tell()
+			f.write("CHURIDAR")
+			f.seek(pos + 30)
+			f.write(rate_churidar.get())
+			f.seek(pos + 40)
+			f.write(qty_churidar.get())
+			f.seek(pos + 50)
+			f.write(total_churidar.get())
+			f.seek(pos + 80)
+		
+		if int(total_shirt.get()) > 0:
+			pos = f.tell()
+			f.write("SHIRT")
+			f.seek(pos + 30)
+			f.write(rate_shirt.get())
+			f.seek(pos + 40)
+			f.write(qty_shirt.get())
+			f.seek(pos + 50)
+			f.write(total_shirt.get())
+			f.seek(pos + 80)
+		
+		if int(total_extra_charges.get()) > 0:
+			pos = f.tell()
+			f.write("EXTRA")
+			f.seek(pos + 30)
+			f.write(rate_extra_charges.get())
+			f.seek(pos + 40)
+			f.write(qty_extra_charges.get())
+			f.seek(pos + 50)
+			f.write(total_extra_charges.get())
+			f.seek(pos + 80)
+
+		f.seek(pos + 2*80)
+		pos = f.tell()
+		f.seek(pos + 30)
+		f.write("GRAND TOTAL")
+		f.seek(pos + 50)
+		f.write(total_grand.get())
+
+
+
+
+
+
+		f.close()
 
 # mainwin.mainloop()
-
 
 class FullScreenApp1(object):
 	def __init__(self, mainwin, root, **kwargs):
 		global Length1, Shoulder1, Sleeve1, Chest1,Waist1,Hip1,Neck1,Half1,Cross_back1,Cross_front1,Bicep1,Arm1
 		global Arm1,style1,Length2, Inseam2, Crotch2, Waist2, Hip2, Thigh2, Knee2, Bottom2, F_Low2, Loopsinput,Sizeinput
-		global Length3, Shoulder3, Sleeve3, Chest3, Waist3,Hip3, Cross_Front3, Cross_Back3, Neck3,Cuff3, Arm_Round3, Ready_Frontinput
+		global Length3, Shoulder3, Sleeve3, Chest3, Waist3,Hip3, Cross_Front3, Cross_Back3, Neck3, Cuff3, Arm_Round3, Ready_Frontinput
 		global jacket_lapel_peak,jacket_lapel_natch,jacket_lapel_shawl,jacket_vent_no,jacket_vent_side,jacket_vent_center
 		global jacket_pocket_straight,jacket_pocket_slant,jacket_pocket_patch,jacket_pocket_ticket,jacket_fit_regular,jacket_fit_slim,jacket_sleeveplacket_vent,jacket_sleeveplacket_functional
 		global trouser_belt_cut,trouser_belt_long, trouser_belt_hook, trouser_belt_button, trouser_belt_square, trouser_belt_round, trouser_belt_vshape,trouser_pleat_single
@@ -430,17 +1321,48 @@ class FullScreenApp1(object):
 		global shirt_frontpocket_box, shirt_frontpocket_plainfuse, shirt_frontpocket_concealed, shirt_back_plain, shirt_back_sidepleat, shirt_back_bocpleat, shirt_back_dart
 
 
-		sizy = -70
-		sizx = 00
-
-		# for widget in mainwin.winfo_children():
-		# 	widget.pack_forget()
-		# 	widget.grid_forget()
-		# 	widget.place_forget()
-		
 		# img = ImageTk.PhotoImage(Image.open("bt.jpg"))
 		# panel = Label(mainwin, image = img)
 		# panel.place(x=sizx+15,y=5)
+
+		Length1 = StringVar()
+		Sleeve1 = StringVar()
+		Shoulder1 = StringVar()
+		Chest1 = StringVar()
+		Waist1 = StringVar()
+		Hip1 = StringVar()
+		Neck1 = StringVar()
+		Half1 = StringVar()
+		Cross_front1 = StringVar()
+		Cross_back1 = StringVar()
+		Bicep1 = StringVar()
+		Arm1 = StringVar()
+
+		Length2 = StringVar()
+		Inseam2 = StringVar()
+		Crotch2 = StringVar()
+		Waist2 = StringVar()
+		Hip2 = StringVar()
+		Thigh2 = StringVar()
+		Knee2 = StringVar()
+		Bottom2 = StringVar()
+		F_Low2 = StringVar()
+
+
+
+		Length3 = StringVar()
+		Sleeve3 = StringVar()
+		Shoulder3 = StringVar()
+		Chest3 = StringVar()
+		Waist3 = StringVar()
+		Hip3 = StringVar()
+		Cross_Front3 = StringVar()
+		Cross_Back3 = StringVar()
+		Neck3 = StringVar()
+		Cuff3 = StringVar()
+		Arm_Round3 = StringVar()
+
+
 
 		jacket_lapel_peak = IntVar()
 		jacket_lapel_natch = IntVar()
@@ -488,6 +1410,8 @@ class FullScreenApp1(object):
 		trouser_fit_regular=IntVar()
 		trouser_fit_slim=IntVar()
 		trouser_fit_tapered = IntVar()
+
+
 		shirt_bottom_cut=IntVar()
 		shirt_bottom_long=IntVar()
 		shirt_bottom_hook=IntVar()
@@ -510,6 +1434,10 @@ class FullScreenApp1(object):
 		
 
 
+	# def create(self,mainwin):
+
+		sizy = -70
+		sizx = 00
 
 		#############################################JACKET#################################################
 
@@ -537,62 +1465,62 @@ class FullScreenApp1(object):
 
 		Length=Label(mainwin,text="Length")
 		Length.place(x=sizx+10,y=sizy+100)
-		Length1= Entry(mainwin,width=8)
-		Length1.place(x=sizx+10,y=sizy+140)
+		Length11= Entry(mainwin,width=8,textvariable=Length1)
+		Length11.place(x=sizx+10,y=sizy+140)
 
 		Shoulder=Label(mainwin,text="Shoulder")
 		Shoulder.place(x=sizx+70,y=sizy+100)
-		Shoulder1= Entry(mainwin,width=8)
-		Shoulder1.place(x=sizx+70,y=sizy+140)
+		Shoulder11= Entry(mainwin,width=8,textvariable=Shoulder1)
+		Shoulder11.place(x=sizx+70,y=sizy+140)
 
 		Sleeve=Label(mainwin,text="Sleeve")
 		Sleeve.place(x=sizx+130,y=sizy+100)
 		Length=Label(mainwin,text="Length")
 		Length.place(x=sizx+130,y=sizy+115)
-		Sleeve1= Entry(mainwin,width=8)
-		Sleeve1.place(x=sizx+130,y=sizy+140)
+		Sleeve11= Entry(mainwin,width=8,textvariable=Sleeve1)
+		Sleeve11.place(x=sizx+130,y=sizy+140)
 
 		Chest=Label(mainwin,text="Chest")
 		Chest.place(x=sizx+190,y=sizy+100)
-		Chest1= Entry(mainwin,width=8)
-		Chest1.place(x=sizx+190,y=sizy+140)
+		Chest11= Entry(mainwin,width=8,textvariable=Chest1)
+		Chest11.place(x=sizx+190,y=sizy+140)
 
 		Waist=Label(mainwin,text="Waist")
 		Waist.place(x=sizx+250,y=sizy+100)
-		Waist1= Entry(mainwin,width=8)
-		Waist1.place(x=sizx+250,y=sizy+140)
+		Waist11= Entry(mainwin,width=8,textvariable=Waist1)
+		Waist11.place(x=sizx+250,y=sizy+140)
 
 		Hip=Label(mainwin,text="Hip")
 		Hip.place(x=sizx+310,y=sizy+100)
-		Hip1= Entry(mainwin,width=8)
-		Hip1.place(x=sizx+310,y=sizy+140)
+		Hip11= Entry(mainwin,width=8,textvariable=Hip1)
+		Hip11.place(x=sizx+310,y=sizy+140)
 
 		Neck=Label(mainwin,text="Neck")
 		Neck.place(x=sizx+370,y=sizy+100)
-		Neck1= Entry(mainwin,width=8)
-		Neck1.place(x=sizx+370,y=sizy+140)
+		Neck11= Entry(mainwin,width=8,textvariable=Neck1)
+		Neck11.place(x=sizx+370,y=sizy+140)
 
 		Half=Label(mainwin,text="Half")
 		Half.place(x=sizx+430,y=sizy+100)
 		Back=Label(mainwin,text="Back")
 		Back.place(x=sizx+430,y=sizy+115)
-		Half1= Entry(mainwin,width=8)
-		Half1.place(x=sizx+430,y=sizy+140)
+		Half11= Entry(mainwin,width=8,textvariable=Half1)
+		Half11.place(x=sizx+430,y=sizy+140)
 
 		Cross_back=Label(mainwin,text="Cross Bk.")
 		Cross_back.place(x=sizx+490,y=sizy+100)
-		Cross_back1= Entry(mainwin,width=8)
-		Cross_back1.place(x=sizx+490,y=sizy+140)
+		Cross_back11= Entry(mainwin,width=8,textvariable=Cross_back1)
+		Cross_back11.place(x=sizx+490,y=sizy+140)
 
 		Cross_front=Label(mainwin,text="Cross Fr.")
 		Cross_front.place(x=sizx+550,y=sizy+100)
-		Cross_front1= Entry(mainwin,width=8)
-		Cross_front1.place(x=sizx+550,y=sizy+140)
+		Cross_front11= Entry(mainwin,width=8,textvariable=Cross_front1)
+		Cross_front11.place(x=sizx+550,y=sizy+140)
 
 		Bicep=Label(mainwin,text="Bicep")
 		Bicep.place(x=sizx+610,y=sizy+100)
-		Bicep1= Entry(mainwin,width=8)
-		Bicep1.place(x=sizx+610,y=sizy+140)
+		Bicep11= Entry(mainwin,width=8,textvariable=Bicep1)
+		Bicep11.place(x=sizx+610,y=sizy+140)
 
 		Arm_hole=Label(mainwin,text="Arm")
 		Arm_hole.place(x=sizx+670,y=sizy+85)
@@ -602,8 +1530,8 @@ class FullScreenApp1(object):
 
 		Round=Label(mainwin,text="Round")
 		Round.place(x=sizx+670,y=sizy+115)
-		Arm1= Entry(mainwin,width=8)
-		Arm1.place(x=sizx+670,y=sizy+140)
+		Arm11= Entry(mainwin,width=8,textvariable=Arm1)
+		Arm11.place(x=sizx+670,y=sizy+140)
 
 		#############################################       JACKET      #################################################
 
@@ -665,55 +1593,50 @@ class FullScreenApp1(object):
 		l3=Label(mainwin,text="Trouser Measurments",fg="red")
 		l3.place(x=sizx+10,y=sizy+305)
 
-		# ordernotrouser=Label(mainwin,text="ORDER NO.")
-		# ordernotrouser.place(x=sizx+550,y=sizy+300)
-		# orderno2= Entry(mainwin,width=8)
-		# orderno2.place(x=sizx+620,y=sizy+300)
-
 		Lengthtrouser=Label(mainwin,text="Length")
 		Lengthtrouser.place(x=sizx+10,y=sizy+330)
-		Length2= Entry(mainwin,width=8)
-		Length2.place(x=sizx+10,y=sizy+360)
+		Length22= Entry(mainwin,width=8,textvariable=Length2)
+		Length22.place(x=sizx+10,y=sizy+360)
 
 		Inseam=Label(mainwin,text="Inseam")
 		Inseam.place(x=sizx+70,y=sizy+330)
-		Inseam2= Entry(mainwin,width=8)
-		Inseam2.place(x=sizx+70,y=sizy+360)
+		Inseam22= Entry(mainwin,width=8,textvariable=Inseam2)
+		Inseam22.place(x=sizx+70,y=sizy+360)
 
 		Crotch=Label(mainwin,text="Crotch")
 		Crotch.place(x=sizx+130,y=sizy+330)
-		Crotch2= Entry(mainwin,width=8)
-		Crotch2.place(x=sizx+130,y=sizy+360)
+		Crotch22= Entry(mainwin,width=8,textvariable=Crotch2)
+		Crotch22.place(x=sizx+130,y=sizy+360)
 
 		Waisttrouser=Label(mainwin,text="Waist")
 		Waisttrouser.place(x=sizx+190,y=sizy+330)
-		Waist2= Entry(mainwin,width=8)
-		Waist2.place(x=sizx+190,y=sizy+360)
+		Waist22= Entry(mainwin,width=8,textvariable=Waist2)
+		Waist22.place(x=sizx+190,y=sizy+360)
 
 		Hiptrouser=Label(mainwin,text="Hip")
 		Hiptrouser.place(x=sizx+250,y=sizy+330)
-		Hip2= Entry(mainwin,width=8)
-		Hip2.place(x=sizx+250,y=sizy+360)
+		Hip22= Entry(mainwin,width=8,textvariable=Hip2)
+		Hip22.place(x=sizx+250,y=sizy+360)
 
 		Thigh=Label(mainwin,text="Thigh")
 		Thigh.place(x=sizx+310,y=sizy+330)
-		Thigh2= Entry(mainwin,width=8)
-		Thigh2.place(x=sizx+310,y=sizy+360)
+		Thigh22= Entry(mainwin,width=8,textvariable=Thigh2)
+		Thigh22.place(x=sizx+310,y=sizy+360)
 
 		Knee=Label(mainwin,text="Knee")
 		Knee.place(x=sizx+370,y=sizy+330)
-		Knee2= Entry(mainwin,width=8)
-		Knee2.place(x=sizx+370,y=sizy+360)
+		Knee22= Entry(mainwin,width=8,textvariable=Knee2)
+		Knee22.place(x=sizx+370,y=sizy+360)
 
 		Bottom=Label(mainwin,text="Bottom")
 		Bottom.place(x=sizx+430,y=sizy+330)
-		Bottom2= Entry(mainwin,width=8)
-		Bottom2.place(x=sizx+430,y=sizy+360)
+		Bottom22= Entry(mainwin,width=8,textvariable=Bottom2)
+		Bottom22.place(x=sizx+430,y=sizy+360)
 
 		F_Low=Label(mainwin,text="F.Low")
 		F_Low.place(x=sizx+490,y=sizy+330)
-		F_Low2= Entry(mainwin,width=8)
-		F_Low2.place(x=sizx+490,y=sizy+360)
+		F_Low22= Entry(mainwin,width=8,textvariable=F_Low2)
+		F_Low22.place(x=sizx+490,y=sizy+360)
 
 
 		#################################        TROUSER  ####################################
@@ -818,69 +1741,62 @@ class FullScreenApp1(object):
 		l5=Label(mainwin,text="Shirt Measurments",fg="red")
 		l5.place(x=sizx+10,y=sizy+590)
 
-
-		# ordernoshirt=Label(mainwin,text="ORDER NO.")
-		# ordernoshirt.place(x=sizx+550,y=sizy+580)
-		# orderno3= Entry(mainwin,width=8)
-		# orderno3.place(x=sizx+620,y=sizy+580)
-
-
 		Lengths3=Label(mainwin,text="Length")
 		Lengths3.place(x=sizx+10,y=sizy+610)
-		Length3= Entry(mainwin,width=8)
-		Length3.place(x=sizx+10,y=sizy+650)
+		Length33= Entry(mainwin,width=8,textvariable=Length3)
+		Length33.place(x=sizx+10,y=sizy+650)
 
 		Shoulders3=Label(mainwin,text="Shoulder")
 		Shoulders3.place(x=sizx+70,y=sizy+610)
-		Shoulder3= Entry(mainwin,width=8)
-		Shoulder3.place(x=sizx+70,y=sizy+650)
+		Shoulder33= Entry(mainwin,width=8,textvariable=Shoulder3)
+		Shoulder33.place(x=sizx+70,y=sizy+650)
 
 		Sleeves3=Label(mainwin,text="Sleeve")
 		Sleeves3.place(x=sizx+130,y=sizy+610)
 		Lengthss3=Label(mainwin,text="Length")
 		Lengthss3.place(x=sizx+130,y=sizy+630)
-		Sleeve3= Entry(mainwin,width=8)
-		Sleeve3.place(x=sizx+130,y=sizy+650)
+		Sleeve33= Entry(mainwin,width=8,textvariable=Sleeve3)
+		Sleeve33.place(x=sizx+130,y=sizy+650)
 
 		Chests3=Label(mainwin,text="Chest")
 		Chests3.place(x=sizx+190,y=sizy+610)
-		Chest3= Entry(mainwin,width=8)
-		Chest3.place(x=sizx+190,y=sizy+650)
+		Chest33= Entry(mainwin,width=8,textvariable=Chest3)
+		Chest33.place(x=sizx+190,y=sizy+650)
 
 		Waists3=Label(mainwin,text="Waist")
 		Waists3.place(x=sizx+250,y=sizy+610)
-		Waist3= Entry(mainwin,width=8)
-		Waist3.place(x=sizx+250,y=sizy+650)
+		Waist33= Entry(mainwin,width=8,textvariable=Waist3)
+		Waist33.place(x=sizx+250,y=sizy+650)
 
 		Hips3=Label(mainwin,text="Hip")
 		Hips3.place(x=sizx+310,y=sizy+610)
-		Hip3= Entry(mainwin,width=8)
-		Hip3.place(x=sizx+310,y=sizy+650)
+		Hip33= Entry(mainwin,width=8,textvariable=Hip3)
+		Hip33.place(x=sizx+310,y=sizy+650)
 
 		Cross_Fronts3=Label(mainwin,text="Cross Ft.")
 		Cross_Fronts3.place(x=sizx+370,y=sizy+610)
-		Cross_Front3= Entry(mainwin,width=8)
-		Cross_Front3.place(x=sizx+370,y=sizy+650)
+		Cross_Front33= Entry(mainwin,width=8,textvariable=Cross_Front3)
+		Cross_Front33.place(x=sizx+370,y=sizy+650)
 
 		Cross_Backs3=Label(mainwin,text="Cross Bk.")
 		Cross_Backs3.place(x=sizx+430,y=sizy+610)
-		Cross_Back3= Entry(mainwin,width=8)
-		Cross_Back3.place(x=sizx+430,y=sizy+650)
+		Cross_Back33= Entry(mainwin,width=8,textvariable=Cross_Back3)
+		Cross_Back33.place(x=sizx+430,y=sizy+650)
 
 		Necks3=Label(mainwin,text="Neck")
 		Necks3.place(x=sizx+490,y=sizy+610)
-		Neck3= Entry(mainwin,width=8)
-		Neck3.place(x=sizx+490,y=sizy+650)
+		Neck33= Entry(mainwin,width=8,textvariable=Neck3)
+		Neck33.place(x=sizx+490,y=sizy+650)
 
 		Cuffs3=Label(mainwin,text="Cuff")
 		Cuffs3.place(x=sizx+550,y=sizy+610)
-		Cuff3= Entry(mainwin,width=8)
-		Cuff3.place(x=sizx+550,y=sizy+650)
+		Cuff33= Entry(mainwin,width=8,textvariable=Cuff3)
+		Cuff33.place(x=sizx+550,y=sizy+650)
 
 		Arm_Rounds3=Label(mainwin,text="Arm Round")
 		Arm_Rounds3.place(x=sizx+610,y=sizy+610)
-		Arm_Round3= Entry(mainwin,width=8)
-		Arm_Round3.place(x=sizx+610,y=sizy+650)
+		Arm_Round33= Entry(mainwin,width=8,textvariable=Arm_Round3)
+		Arm_Round33.place(x=sizx+610,y=sizy+650)
 
 
 		#############################################     Shirt      #################################################
@@ -946,9 +1862,6 @@ class FullScreenApp1(object):
 		# Button(mainwin, text='<<<<',height=2,width=5, command=lambda: FullScreenApp(mainwin)).place(x=680,y=490)
 
 
-# mainwin.mainloop()
-
-
 def NotifyMsg(data):
 	if data['req'] == 'success':
 		tkMessageBox.showinfo(data['req'],data['msg'])
@@ -958,30 +1871,31 @@ def NotifyMsg(data):
 	# 	tkMessageBox.showinfo("test",data)
 
    # tkMessageBox.showinfo(data)
+	
 
 def messageWindow():
-    win = Toplevel()
-    win.title('warning')
-    message = "This will delete stuff"
-    Label(win, text=message).pack()
-    Button(win, text='Delete', command=win.destroy).pack()
+	win = Toplevel()
+	win.title('warning')
+	message = "This will delete stuff"
+	Label(win, text=message).pack()
+	Button(win, text='Delete', command=win.destroy).pack()
 
 def setCustomerDetails(root):
 	customer = {}
 	order = {}
 	notifyData = {}
 
-	customer['name'] = e1.get()
-	customer['address'] = e2.get()
-	customer['email'] = e3.get()
-	customer['mobile'] = e4.get()
+	customer['name'] = cus_name.get()
+	customer['address'] = cus_address.get()
+	customer['email'] = cus_email.get()
+	customer['mobile'] = cus_mobile.get()
 
-	order['date_order'] = e5.get()
-	order['date_trail'] = e6.get()
-	order['date_delivery'] = e7.get()
+	order['date_order'] = ord_date.get()
+	order['date_trail'] = trail_date.get()
+	order['date_delivery'] = deli_date.get()
 	order['Approximate_trail_date'] = e13.get()
 	order['Approximate_delivery_date'] = e14.get()
-
+	order['grand_total'] = total_grand.get()
 
 
 	rate['sherwani'] = rate_sherwani.get()
@@ -1015,6 +1929,22 @@ def setCustomerDetails(root):
 	qty['churidar'] = qty_churidar.get()
 	qty['shirt'] = qty_shirt.get()
 	qty['extra_charges'] = qty_extra_charges.get()
+
+	total['sherwani'] = total_sherwani.get()
+	total['trouser'] = total_trouser.get()
+	total['3pc'] = total_3pc.get()
+	total['kurta'] = total_kurta.get()
+	total['safari'] = total_safari.get()
+	total['suit'] = total_suit.get()
+	total['vest_jacket'] = total_vest_jacket.get()
+	total['kurta_pyjm'] = total_kurta_pyjm.get()
+	total['tuxedo'] = total_tuxedo.get()
+	total['blazer_jkt'] = total_blazer_jkt.get()
+	total['overcoat'] = total_overcoat.get()
+	total['jodhpuri'] = total_jodhpuri.get()
+	total['churidar'] = total_churidar.get()
+	total['shirt'] = total_shirt.get()
+	total['extra_charges'] = total_extra_charges.get()
 
 	jacket_measure['basic'] = {}
 	jacket_measure['basic']['length'] = Length1.get()
@@ -1136,6 +2066,7 @@ def setCustomerDetails(root):
 	shirt_measure['style_details']['back']['side_pleat'] = shirt_back_sidepleat.get()
 	shirt_measure['style_details']['back']['boc_pleat'] = shirt_back_bocpleat.get()
 	shirt_measure['style_details']['back']['dart'] = shirt_back_dart.get()
+	shirt_measure['style_details']['back']['plain'] = shirt_back_plain.get()
 	shirt_measure['style_details']['ready_front'] = Ready_Frontinput.get('1.0','end-1c')
 
 
@@ -1144,11 +2075,11 @@ def setCustomerDetails(root):
 
 
 	if customer['name'] != '' and customer['address'] != '' and customer['mobile'] != '' :
-		if order['date_trail'] != '' and order['date_delivery'] != '' :
+		if order['date_order'] != '' and order['date_delivery'] != '' :
 			notifyData['req'] = 'success'
 		else:
 			notifyData['req'] = 'error'
-			notifyData['msg'] = "Trail Date and Delivery Date Can't be Blank"
+			notifyData['msg'] = "Order Date and Delivery Date Can't be Blank"
 			NotifyMsg(notifyData)
 	
 	else:
@@ -1164,55 +2095,47 @@ def setCustomerDetails(root):
 
 		if cusData['req'] == 'success' and cusData['req'] != 'error' :
 			Lastid = cusData['insert_id']
-			NotifyMsg(cusData)
+			# Lastid = 0
+			# NotifyMsg(cusData)
 
 			orderObj = OrderDetails()
 			ordData = orderObj.setData(order,Lastid)
+			NotifyMsg(ordData)
 
 			if ordData['req'] == 'success' and ordData['req'] != 'error':
 				LastOrderId = ordData['order_id']
+
+				billObj = BillDetails()
+				billData = billObj.setData(rate, qty, total, LastOrderId)
+				NotifyMsg(billData)
+
 				jacketObj = MeasurementJacket()
 				jktData = jacketObj.setData(jacket_measure['basic'],LastOrderId)
-				NotifyMsg(jktData)
+				# NotifyMsg(jktData)
 				
 				jacketStyleObj = MeasurementJacketStyle()
 				jktStlData = jacketStyleObj.setData(jacket_measure['style_details'],LastOrderId)
-				NotifyMsg(jktData)
+				# NotifyMsg(jktData)
 
 				shirtObj = MeasurementShirt()
 				shirtData = shirtObj.setData(shirt_measure['basic'],LastOrderId)
-				NotifyMsg(shirtData)
+				# NotifyMsg(shirtData)
 
 				shirtStyleObj = MeasurementShirtStyle()
 				shirtStyleData = shirtStyleObj.setData(shirt_measure['style_details'],LastOrderId) 
-				NotifyMsg(shirtStyleData)
+				# NotifyMsg(shirtStyleData)
 
 				trouserObj = MeasurementTrouser()
 				trouserData = trouserObj.setData(trouser_measure['basic'],LastOrderId)
-				NotifyMsg(trouserData)
+				# NotifyMsg(trouserData)
 
 				trouserStyleObj = MeasurementTrouserStyle()
 				trouserStyleData = trouserStyleObj.setData(trouser_measure['style_details'],LastOrderId) 
-				NotifyMsg(trouserStyleData)
+				# NotifyMsg(trouserStyleData)
 
 
-			else:
+			# else:
 				# return 
-				NotifyMsg(ordData)
+				# NotifyMsg(ordData)
 		else:
 			NotifyMsg(cusData)
-
-
-
-
-
-
-	# print data
-	
-	# NotifyMsg(data)
-	# print customer
-	# print rate
-	# print qty
-	# print jacket_measure
-	# print trouser_measure
-	# print shirt_measure

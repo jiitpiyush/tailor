@@ -1,0 +1,19 @@
+Order No.. 2                                                                   
+Name.... Test                                Order Date... 25/01/2017          
+Email... Test@test.com                       Trail Date...                     
+Mobile.. 8285846979                          Delivery date 27/01/2017          
+Address..:TEst                                                                 
+                                                                               
+                                                                               
+                    BILL DETAILS                                               
+Particulars                   Rate      Qty       Total                        
+                                                                               
+                              GRAND TOTAL         0                            
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
