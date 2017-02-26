@@ -2,10 +2,31 @@ import sqlite3 as lite
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir) 
+from subprocess import call
 
 con = None
 
-con = lite.connect(parentdir+'/bespoke.db')
+tailordir = os.path.join(os.path.join(os.path.expanduser('~'),"Documents"),"Tailor")
+billdir = os.path.join(tailordir,"bills")
+invoicedir = os.path.join(tailordir,"invoice_template")
+imagesdir = os.path.join(tailordir,"images")
+dbdir = os.path.join(tailordir,"Database")
+
+if not os.path.isdir(tailordir):
+	os.mkdir(tailordir)
+if not os.path.isdir(billdir):
+	os.mkdir(billdir)
+if not os.path.isdir(invoicedir):
+	os.mkdir(invoicedir)
+if not os.path.isdir(imagesdir):
+	os.mkdir(imagesdir)
+
+if not os.path.isdir(dbdir):
+	os.mkdir(dbdir)
+
+
+con = lite.connect(dbdir+'/bespoke.db')
 
 
 with con:

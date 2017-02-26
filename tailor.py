@@ -1,5 +1,3 @@
-import sys
-from PIL import ImageTk,Image
 
 try:
     # Python2
@@ -8,6 +6,8 @@ except ImportError:
     # Python3
     from tkinter import Tk,Frame,RAISED,LEFT,Button,RIGHT
 
+import sys
+from PIL import ImageTk,Image
 
 from container.piyush import * 
 
@@ -41,9 +41,9 @@ if __name__ == "__main__":
 
     # main1.create(frame_d)
 
-    img = ImageTk.PhotoImage(Image.open("images/bt.jpg"))
-    panel = Label(root, image = img)
-    panel.place(x=500,y=250)
+    # img = ImageTk.PhotoImage(Image.open("images/bt.jpg"))
+    # panel = Label(root, image = img)
+    # panel.place(x=500,y=250)
 
     
     

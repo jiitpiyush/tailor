@@ -2,12 +2,12 @@
 try:
 	# Python2
 	from Tkinter import Tk,Label,Entry,Button,StringVar,tkMessageBox
-	from Tkinter import Text,Checkbutton,IntVar,Toplevel,Message,Scrollbar,RIGHT,LEFT,BOTH,END,Y,Listbox,Frame,N,S,W,E
+	from Tkinter import Text,Checkbutton,IntVar,Toplevel,Message,Scrollbar,RAISED,RIGHT,LEFT,BOTH,END,Y,Listbox,Frame,N,S,W,E
 	from ttk import *
 except ImportError:
 	# Python3
 	from tkinter import Tk,Label,Entry,Button,StringVar,messagebox as tkMessageBox
-	from tkinter import Text,Checkbutton,IntVar,Toplevel,Message,Scrollbar,RIGHT,LEFT,BOTH,END,Y,Listbox,ttk,Frame,N,S,W,E
+	from tkinter import Text,Checkbutton,IntVar,Toplevel,Message,Scrollbar,RAISED,RIGHT,LEFT,BOTH,END,Y,Listbox,ttk,Frame,N,S,W,E
 
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -16,21 +16,13 @@ sys.path.insert(0,parentdir)
 
 import sys
 import json
-from PIL import ImageTk,Image
 from subprocess import call
-
-try:
-	# Python2
-	from Tkinter import Tk,Frame,RAISED,LEFT,Button
-except ImportError:
-	# Python3
-	from tkinter import Tk,Frame,RAISED,LEFT,Button
-
-
 from dbconnection.models import * 
-
-
-
+tailordir = os.path.join(os.path.join(os.path.expanduser('~'),"Documents"),"Tailor")
+billdir = os.path.join(tailordir,"bills")
+invoicedir = os.path.join(tailordir,"invoice_template")
+imagesdir = os.path.join(tailordir,"images")
+dbdir = os.path.join(tailordir,"Database")
 
 
 
@@ -1078,233 +1070,129 @@ class FullScreenApp(object):
 		Button(self.mainwin, text='Print',height=2,width=5, command=lambda: self.printbill()).place(x=450,y=650)
 		Button(self.mainwin, text='New Order',height=2,width=9, command=lambda: self.create(self.mainwin)).place(x=520,y=650)
 
-	def printbill(self):
-		# call(["gnome-screenshot" , "-f" , "/home/piyush/bill.jpg"])
-		f = open(os.path.join(os.path.join(parentdir,"bills"),editOrder.get().strip()+".txt"),'w')
-		# print(f)
-		for j in range(1,20):
-			for i in range(1,80):
-				f.write(" ")
-			f.write("\n")
-		f.seek(0)
-		f.write("Order No.. " + editOrder.get().strip())
-		f.seek(80)
-		last_pos = f.tell()
-		f.write("Name.... " + cus_name.get().strip())
-		f.seek(last_pos + 45)
-		f.write("Order Date... " + ord_date.get().strip())
-		f.seek(160)
-		last_pos = f.tell()
-		f.write("Email... " + cus_email.get().strip())
-		f.seek(last_pos + 45)
-		f.write("Trail Date... " + trail_date.get().strip())
-		f.seek(240)
-		last_pos = f.tell()
-		f.write("Mobile.. " + cus_mobile.get().strip())
-		f.seek(last_pos + 45)
-		f.write("Delivery date " + deli_date.get().strip())
-		f.seek(320)
-		f.write("Address..:" + cus_address.get())
-		f.seek(400)
+	def getBill(self,name,rate, qty, total):
+		ret_data = '''<tr>
+			            <td class="service">'''+ name + ''' </td>
+			            <td class="unit">'''+ rate + '''</td>
+			            <td class="qty">'''+ qty + '''</td>
+			            <td class="total">'''+ total + '''</td>
+			          </tr>'''
+		return ret_data
 
-		# f.write("\n\n")
-		f.seek(f.tell() + 2*80)
-		pos = f.tell()
-		f.seek(pos + 20)
-		f.write("BILL DETAILS")
-		f.seek(640)
-		pos = f.tell()
-		f.write("Particulars")
-		f.seek(pos + 30)
-		f.write("Rate")
-		f.seek(pos + 40)
-		f.write("Qty")
-		f.seek(pos + 50)
-		f.write("Total")
-		f.seek(pos + 2*80)
-		# f.write("\n")
+	def printbill(self):
+		fi = open(os.path.join(billdir,editOrder.get().strip()+".html"),'w')
+		particulars_bill = ''
 
 		if int(total_sherwani.get()) > 0:
-			pos = f.tell()
-			f.write("Sherwani")
-			f.seek(pos + 30)
-			f.write(rate_sherwani.get())
-			f.seek(pos + 40)
-			f.write(qty_sherwani.get())
-			f.seek(pos + 50)
-			f.write(total_sherwani.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("SHERWANI",rate_sherwani.get(),qty_sherwani.get(),total_sherwani.get())
 
 		if int(total_trouser.get()) > 0:
-			pos = f.tell()
-			f.write("Trouser")
-			f.seek(pos + 30)
-			f.write(rate_trouser.get())
-			f.seek(pos + 40)
-			f.write(qty_trouser.get())
-			f.seek(pos + 50)
-			f.write(total_trouser.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("TROUSER",rate_trouser.get(),qty_trouser.get(),total_trouser.get())
 		
 		if int(total_3pc.get()) > 0:
-			pos = f.tell()
-			f.write("3PC")
-			f.seek(pos + 30)
-			f.write(rate_3pc.get())
-			f.seek(pos + 40)
-			f.write(qty_3pc.get())
-			f.seek(pos + 50)
-			f.write(total_3pc.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("3PC",rate_3pc.get(),qty_3pc.get(),total_3pc.get())
 		
 		if int(total_kurta.get()) > 0:
-			pos = f.tell()
-			f.write("KURTA")
-			f.seek(pos + 30)
-			f.write(rate_kurta.get())
-			f.seek(pos + 40)
-			f.write(qty_kurta.get())
-			f.seek(pos + 50)
-			f.write(total_kurta.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("KURTA",rate_kurta.get(),qty_kurta.get(),total_kurta.get())
 		
 		if int(total_safari.get()) > 0:
-			pos = f.tell()
-			f.write("SAFARI")
-			f.seek(pos + 30)
-			f.write(rate_safari.get())
-			f.seek(pos + 40)
-			f.write(qty_safari.get())
-			f.seek(pos + 50)
-			f.write(total_safari.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("SAFARI",rate_safari.get(),qty_safari.get(),total_safari.get())
 		
-
 		if int(total_suit.get()) > 0:
-			pos = f.tell()
-			f.write("SUIT")
-			f.seek(pos + 30)
-			f.write(rate_suit.get())
-			f.seek(pos + 40)
-			f.write(qty_suit.get())
-			f.seek(pos + 50)
-			f.write(total_suit.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("SUIT",rate_suit.get(),qty_suit.get(),total_suit.get())
 		
 		if int(total_vest_jacket.get()) > 0:
-			pos = f.tell()
-			f.write("VEST-JACKET")
-			f.seek(pos + 30)
-			f.write(rate_vest_jacket.get())
-			f.seek(pos + 40)
-			f.write(qty_vest_jacket.get())
-			f.seek(pos + 50)
-			f.write(total_vest_jacket.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("VEST-JACKET",rate_vest_jacket.get(),qty_vest_jacket.get(),total_vest_jacket.get())
 		
 		if int(total_kurta_pyjm.get()) > 0:
-			pos = f.tell()
-			f.write("KURTA-PYJM")
-			f.seek(pos + 30)
-			f.write(rate_kurta_pyjm.get())
-			f.seek(pos + 40)
-			f.write(qty_kurta_pyjm.get())
-			f.seek(pos + 50)
-			f.write(total_kurta_pyjm.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("KURTA-PYJM",rate_kurta_pyjm.get(),qty_kurta_pyjm.get(),total_kurta_pyjm.get())
 		
 		if int(total_tuxedo.get()) > 0:
-			pos = f.tell()
-			f.write("TUXEDO")
-			f.seek(pos + 30)
-			f.write(rate_tuxedo.get())
-			f.seek(pos + 40)
-			f.write(qty_tuxedo.get())
-			f.seek(pos + 50)
-			f.write(total_tuxedo.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("TUXEDO",rate_tuxedo.get(),qty_tuxedo.get(),total_tuxedo.get())
 
 		if int(total_blazer_jkt.get()) > 0:
-			pos = f.tell()
-			f.write("BLAZER")
-			f.seek(pos + 30)
-			f.write(rate_blazer_jkt.get())
-			f.seek(pos + 40)
-			f.write(qty_blazer_jkt.get())
-			f.seek(pos + 50)
-			f.write(total_blazer_jkt.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("BLAZER",rate_blazer_jkt.get(),qty_blazer_jkt.get(),total_blazer_jkt.get())
 		
 		if int(total_overcoat.get()) > 0:
-			pos = f.tell()
-			f.write("OVERCOAT")
-			f.seek(pos + 30)
-			f.write(rate_overcoat.get())
-			f.seek(pos + 40)
-			f.write(qty_overcoat.get())
-			f.seek(pos + 50)
-			f.write(total_overcoat.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("OVERCOAT",rate_overcoat.get(),qty_overcoat.get(),total_overcoat.get())
 		
 		if int(total_jodhpuri.get()) > 0:
-			pos = f.tell()
-			f.write("JODHPURI")
-			f.seek(pos + 30)
-			f.write(rate_jodhpuri.get())
-			f.seek(pos + 40)
-			f.write(qty_jodhpuri.get())
-			f.seek(pos + 50)
-			f.write(total_jodhpuri.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("JODHPURI",rate_jodhpuri.get(),qty_jodhpuri.get(),total_jodhpuri.get())
 		
 		if int(total_churidar.get()) > 0:
-			pos = f.tell()
-			f.write("CHURIDAR")
-			f.seek(pos + 30)
-			f.write(rate_churidar.get())
-			f.seek(pos + 40)
-			f.write(qty_churidar.get())
-			f.seek(pos + 50)
-			f.write(total_churidar.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("CHURIDAR",rate_churidar.get(),qty_churidar.get(),total_churidar.get())
 		
 		if int(total_shirt.get()) > 0:
-			pos = f.tell()
-			f.write("SHIRT")
-			f.seek(pos + 30)
-			f.write(rate_shirt.get())
-			f.seek(pos + 40)
-			f.write(qty_shirt.get())
-			f.seek(pos + 50)
-			f.write(total_shirt.get())
-			f.seek(pos + 80)
+			particulars_bill += self.getBill("SHIRT",rate_shirt.get(),qty_shirt.get(),total_shirt.get())
 		
 		if int(total_extra_charges.get()) > 0:
-			pos = f.tell()
-			f.write("EXTRA")
-			f.seek(pos + 30)
-			f.write(rate_extra_charges.get())
-			f.seek(pos + 40)
-			f.write(qty_extra_charges.get())
-			f.seek(pos + 50)
-			f.write(total_extra_charges.get())
-			f.seek(pos + 80)
-
-		f.seek(pos + 2*80)
-		pos = f.tell()
-		f.seek(pos + 30)
-		f.write("GRAND TOTAL")
-		f.seek(pos + 50)
-		f.write(total_grand.get())
+			particulars_bill += self.getBill("EXTRA",rate_extra_charges.get(),qty_extra_charges.get(),total_extra_charges.get())
 
 
+		str = '''<!DOCTYPE html>
+				<html lang="en">
+			  <head>
+			    <meta charset="utf-8">
+			    <title>Example 1</title>
+			    <link rel="stylesheet" href="'''+ invoicedir +'''/style.css" media="all" />
+			    <style type="text/css">
+			    </style>
+			  </head>
+			  <body>
+			    <header class="clearfix">
+			      <div id="logo">
+			        <img src="../images/bt.jpg">
+			      </div>
+			      <h1>BESPOKE # INVOICE</h1>
+			      <div id="company" class="clearfix">
+			        <div>BeSpoke Tailoring</div>
+			        <div> L.G.F., F-11, Eldeco Magnum Plaza<br /> Eldeco Green, <br/> Gomti Nagar, Lucknow</div>
+        			<div>9696401314, 9935106200</div>
+			      </div>
+			      <div id="project">
+			        <div><strong><span>ORDER # ..</span> '''+ editOrder.get() +'''</strong></div><br/>
+			        <div><span>CUSTOMER</span> '''+ cus_name.get() +'''</div>
+			        <div><span>MOBILE N0</span> '''+ cus_mobile.get() +'''</div>
+			        <div><span>EMAIL.......</span> <a href="mailto:'''+ cus_email.get() +'''">'''+ cus_email.get() +'''</a></div>
+			        <div><span>DATE.........</span> '''+ ord_date.get() +'''</div>
+			        <div><span>DUE DATE ....</span> '''+ deli_date.get() +'''</div>
+			        <div><span>ADDRESS .</span> '''+ cus_address.get() +''', INDIA</div>
+			      </div>
+			    </header>
+			    <main>
+			      <table>
+			        <thead>
+			          <tr>
+			            <th class="service">SERVICE</th>
+			            <th>PRICE</th>
+			            <th>QTY</th>
+			            <th>TOTAL</th>
+			          </tr>
+			        </thead>
+			        <tbody>
+			          '''+ particulars_bill + '''
+			          
+			          <tr>
+			            <td colspan="3" class="grand total">GRAND TOTAL</td>
+			            <td class="grand total"> Rs.'''+ total_grand.get() +'''</td>
+			          </tr>
+			        </tbody>
+			      </table>
+			    </main>
+			    <footer>
+			      Invoice was created on a computer and is valid without the signature and seal.
+			    </footer>
+			  </body>
+			</html>'''
+		
+		fi.write(str)
+		fi.close()
 
+		data={}
+		data['req'] = 'success'
+		data['msg'] = "Bill Generated"
+		NotifyMsg(data)
 
-
-
-		f.close()
-
-# mainwin.mainloop()
 
 class FullScreenApp1(object):
 	def __init__(self, mainwin, root, **kwargs):

@@ -3,9 +3,12 @@ from . import sqlite_init
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
-# sys.path.insert(0,parentdir) 
+sys.path.insert(0,parentdir) 
 
-# print parentdir
+
+tailordir = os.path.join(os.path.join(os.path.expanduser('~'),"Documents"),"Tailor")
+dbdir = os.path.join(tailordir,"Database")
+
 global returnData
 
 class CustomerDetails(object):
@@ -16,7 +19,7 @@ class CustomerDetails(object):
 	def setData(self,data):
 		returnData = {}		
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -62,7 +65,7 @@ class CustomerDetails(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
@@ -95,7 +98,7 @@ class OrderDetails(object):
 	def setData(self,data,uid):
 		con = None
 		returnData = {}		
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -133,7 +136,7 @@ class OrderDetails(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 
 		with con:
@@ -170,7 +173,7 @@ class BillDetails(object):
 		returnData = {}		
 		insertData = []
 
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -214,7 +217,7 @@ class BillDetails(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 
 		with con:
@@ -248,7 +251,7 @@ class MeasurementJacket(object):
 		# self.arg = arg
 	def setData(self,data,uid):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
@@ -289,7 +292,7 @@ class MeasurementJacket(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
@@ -326,7 +329,7 @@ class MeasurementJacketStyle(object):
 		sleeve_placket = str(data['sleeve_placket'])
 
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -351,7 +354,7 @@ class MeasurementJacketStyle(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
@@ -395,7 +398,7 @@ class MeasurementShirt(object):
 		arm_round = data['arm_round']
 
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -420,7 +423,7 @@ class MeasurementShirt(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
@@ -457,7 +460,7 @@ class MeasurementShirtStyle(object):
 		ready_front = str(data['ready_front'])
 
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -482,7 +485,7 @@ class MeasurementShirtStyle(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
@@ -524,7 +527,7 @@ class MeasurementTrouser(object):
 		f_low	= str(data['f_low'])
 
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -548,7 +551,7 @@ class MeasurementTrouser(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
@@ -589,7 +592,7 @@ class MeasurementTrouserStyle(object):
 		lining		=	str(data['lining'])
 
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		with con:
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
@@ -614,7 +617,7 @@ class MeasurementTrouserStyle(object):
 
 	def getData(self,condition,fields=None):
 		con = None
-		con = lite.connect(parentdir+'/bespoke.db')
+		con = lite.connect(dbdir+'/bespoke.db')
 		returnData = {}
 		with con:
 			cur = con.cursor()
