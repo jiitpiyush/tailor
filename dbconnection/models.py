@@ -103,36 +103,53 @@ class OrderDetails(object):
 			cur = con.cursor()
 			cur.execute("PRAGMA foreign_keys = ON")
 
-			customer_id = str(uid)
-			date_order = str(data['date_order'])
-			date_trail = str(data['date_trail'])
-			date_delivery = str(data['date_delivery'])
-			appxTrail = str(data['Approximate_trail_date'])
-			appxDelivery = str(data['Approximate_delivery_date'])
-			grand_total = int(data['grand_total'])
+			if data['id'] != None and data['id'] != '':
+				order_id = int(data['id'])
+				customer_id = str(uid)
+				date_order = str(data['date_order'])
+				date_trail = str(data['date_trail'])
+				date_delivery = str(data['date_delivery'])
+				# appxTrail = str(data['Approximate_trail_date'])
+				# appxDelivery = str(data['Approximate_delivery_date'])
+				grand_total = int(data['grand_total'])
 
 
-			try:
-
-				sql = '''INSERT INTO order_details(customer_id, order_date, trail_date, delivery_date,grand_total) VALUES(?,?,?,?,?);'''
-				insertData = (customer_id, date_order, date_trail, date_delivery,grand_total)
-
-				cur.execute(sql,insertData)
-				cur.execute("SELECT last_insert_rowid()")
-
-				rows = cur.fetchone()
-				con.commit()
+				condition = "order_id="+str(order_id)
+				fields = str(order_id)
+				Data = self.getData(condition,fields)
 				
-				returnData['req'] = 'success'
-				returnData['order_id'] = rows[0]
-				returnData['msg'] = "Your Order id: " + str(rows[0])
-				return returnData
+				if(Data != ''):
+					returnData['req'] = 'error'
+					returnData['msg'] = "Order Not Created.\n" + "Order id already exist"
+					return returnData
 
-			except lite.Error as e:
-				# raise e
+
+
+				try:
+
+					sql = '''INSERT INTO order_details(customer_id, order_id, order_date, trail_date, delivery_date,grand_total) VALUES(?,?,?,?,?,?);'''
+					insertData = (customer_id, order_id, date_order, date_trail, date_delivery,grand_total)
+
+					cur.execute(sql,insertData)
+					cur.execute("SELECT last_insert_rowid()")
+
+					rows = cur.fetchone()
+					con.commit()
+					
+					returnData['req'] = 'success'
+					returnData['order_id'] = rows[0]
+					returnData['msg'] = "Your Order id: " + str(rows[0])
+					return returnData
+
+				except lite.Error as e:
+					# raise e
+					returnData['req'] = 'error'
+					returnData['msg'] = "Order Not Created.\n" + e.args[0]
+			else:
 				returnData['req'] = 'error'
-				returnData['msg'] = "Order Not Created.\n" + e.args[0]
-				return returnData
+				returnData['msg'] = "Order Not Created.\n" + "Order Id Can't Be Blank"
+
+			return returnData
 
 	def getData(self,condition,fields=None):
 		con = None
@@ -395,6 +412,7 @@ class MeasurementShirt(object):
 		cross_back = data['cross_back']
 		neck = data['neck']
 		cuff = data['cuff']
+		half_sleeve = data['half_sleeve']
 		arm_round = data['arm_round']
 
 		con = None
@@ -404,8 +422,8 @@ class MeasurementShirt(object):
 			cur.execute("PRAGMA foreign_keys = ON")
 
 			try:
-				sql = '''INSERT INTO measurement_shirt(order_id, length, shoulder, sleeve, chest, waist, hip, cross_front, cross_back, neck, cuff, arm_round ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) '''
-				insertData = (order_id, length, shoulder, sleeve_length, chest, waist, hip, cross_front, cross_back, neck, cuff, arm_round )
+				sql = '''INSERT INTO measurement_shirt(order_id, length, shoulder, sleeve, chest, waist, hip, cross_front, cross_back, neck, cuff, half_sleeve, arm_round ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) '''
+				insertData = (order_id, length, shoulder, sleeve_length, chest, waist, hip, cross_front, cross_back, neck, cuff, half_sleeve, arm_round )
 				cur.execute(sql,insertData)
 				con.commit()
 				

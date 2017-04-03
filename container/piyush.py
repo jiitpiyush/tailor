@@ -14,7 +14,6 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir) 
 
-import sys
 import json
 from subprocess import call
 from dbconnection.models import * 
@@ -185,6 +184,10 @@ class App(Frame):
 						rate_shirt.set(bill[2])
 						qty_shirt.set(bill[3])
 						total_shirt.set(bill[4])
+					elif bill[1] == 'nehrujkt':
+						rate_nehrujkt.set(bill[2])
+						qty_nehrujkt.set(bill[3])
+						total_nehrujkt.set(bill[4])
 					elif bill[1] == 'extra_charges':
 						rate_extra_charges.set(bill[2])
 						qty_extra_charges.set(bill[3])
@@ -256,7 +259,8 @@ class App(Frame):
 				Cross_Back3.set(shirt[8])
 				Neck3.set(shirt[9])
 				Cuff3.set(shirt[10])
-				Arm_Round3.set(shirt[11])
+				Half_Sleeve3.set(shirt[11])
+				Arm_Round3.set(shirt[12])
 
 			shirtStyle = MeasurementShirtStyle()
 			shirt_s_data = shirtStyle.getData(condition,fields)
@@ -456,7 +460,7 @@ class FullScreenApp(object):
 		else:
 			total.set('0')
 
-		total_g = int(total_sherwani.get()) + int(total_trouser.get()) + int(total_3pc.get()) + int(total_kurta.get()) + int(total_suit.get()) + int(total_safari.get()) + int(total_tuxedo.get()) +  int(total_vest_jacket.get()) +  int(total_kurta_pyjm.get()) +  int(total_blazer_jkt.get()) +  int(total_overcoat.get()) +  int(total_jodhpuri.get()) +  int(total_churidar.get()) +  int(total_shirt.get()) +  int(total_extra_charges.get())
+		total_g = int(total_sherwani.get()) + int(total_trouser.get()) + int(total_3pc.get()) + int(total_kurta.get()) + int(total_suit.get()) + int(total_safari.get()) + int(total_tuxedo.get()) +  int(total_vest_jacket.get()) +  int(total_kurta_pyjm.get()) +  int(total_blazer_jkt.get()) +  int(total_overcoat.get()) +  int(total_jodhpuri.get()) +  int(total_churidar.get()) +  int(total_shirt.get()) + int(total_nehrujkt.get()) +  int(total_extra_charges.get())
 		total_grand.set(total_g)
 
 	def search(self):
@@ -468,9 +472,9 @@ class FullScreenApp(object):
 
 	def __init__(self, mainwin, root, main1, **kwargs):
 		global cus_name,cus_email,cus_mobile,cus_address,ord_date,deli_date, trail_date, editOrder
-		global total_grand, total_sherwani,total_trouser,total_3pc,total_kurta,total_suit,total_safari,total_tuxedo, total_vest_jacket, total_kurta_pyjm, total_blazer_jkt, total_overcoat, total_jodhpuri, total_churidar, total_shirt, total_extra_charges		
-		global rate_sherwani, rate_trouser, rate_3pc, rate_kurta, rate_safari, rate_suit, rate_vest_jacket, rate_kurta_pyjm, rate_tuxedo, rate_blazer_jkt, rate_overcoat, rate_jodhpuri, rate_churidar, rate_shirt, rate_extra_charges
-		global qty_sherwani, qty_trouser, qty_3pc, qty_kurta, qty_safari, qty_suit, qty_vest_jacket, qty_kurta_pyjm, qty_tuxedo, qty_blazer_jkt, qty_overcoat, qty_jodhpuri, qty_churidar, qty_shirt, qty_extra_charges
+		global total_grand, total_sherwani,total_trouser,total_3pc,total_kurta,total_suit,total_safari,total_tuxedo, total_vest_jacket, total_kurta_pyjm, total_blazer_jkt, total_overcoat, total_jodhpuri, total_churidar, total_shirt, total_extra_charges, total_nehrujkt	
+		global rate_sherwani, rate_trouser, rate_3pc, rate_kurta, rate_safari, rate_suit, rate_vest_jacket, rate_kurta_pyjm, rate_tuxedo, rate_blazer_jkt, rate_overcoat, rate_jodhpuri, rate_churidar, rate_shirt, rate_extra_charges, rate_nehrujkt
+		global qty_sherwani, qty_trouser, qty_3pc, qty_kurta, qty_safari, qty_suit, qty_vest_jacket, qty_kurta_pyjm, qty_tuxedo, qty_blazer_jkt, qty_overcoat, qty_jodhpuri, qty_churidar, qty_shirt, qty_extra_charges, qty_nehrujkt
 
 		self.root = root
 		self.mainwin = mainwin
@@ -542,13 +546,17 @@ class FullScreenApp(object):
 		qty_shirt = StringVar()
 		total_shirt = StringVar()
 
+		rate_nehrujkt = StringVar()
+		qty_nehrujkt = StringVar()
+		total_nehrujkt = StringVar()
+
 		rate_extra_charges = StringVar()
 		qty_extra_charges = StringVar()
 		total_extra_charges = StringVar()
 
 		editOrder = StringVar()
 
-		total_sherwani.set(0),total_trouser.set(0),total_3pc.set(0),total_kurta.set(0),total_suit.set(0),total_safari.set(0),total_tuxedo.set(0), total_vest_jacket.set(0), total_kurta_pyjm.set(0), total_blazer_jkt.set(0), total_overcoat.set(0), total_jodhpuri.set(0), total_churidar.set(0), total_shirt.set(0), total_extra_charges.set(0)
+		total_sherwani.set(0),total_trouser.set(0),total_3pc.set(0),total_kurta.set(0),total_suit.set(0),total_safari.set(0),total_tuxedo.set(0), total_vest_jacket.set(0), total_kurta_pyjm.set(0), total_blazer_jkt.set(0), total_overcoat.set(0), total_jodhpuri.set(0), total_churidar.set(0), total_shirt.set(0), total_nehrujkt.set(0), total_extra_charges.set(0)
 
 		total_grand = StringVar()
 
@@ -604,6 +612,8 @@ class FullScreenApp(object):
 		rate_shirt.trace("w", lambda name, index, mode, rate_shirt=rate_shirt: self.callback(rate_shirt,qty_shirt,total_shirt))
 		qty_shirt.trace("w", lambda name, index, mode, qty_shirt=qty_shirt: self.callback(rate_shirt,qty_shirt,total_shirt))
 
+		rate_nehrujkt.trace("w", lambda name, index, mode, rate_nehrujkt=rate_nehrujkt: self.callback(rate_nehrujkt,qty_nehrujkt,total_nehrujkt))
+		qty_nehrujkt.trace("w", lambda name, index, mode, qty_nehrujkt=qty_nehrujkt: self.callback(rate_nehrujkt,qty_nehrujkt,total_nehrujkt))
 
 		rate_extra_charges.trace("w", lambda name, index, mode, rate_extra_charges=rate_extra_charges: self.callback(rate_extra_charges,qty_extra_charges,total_extra_charges))
 		qty_extra_charges.trace("w", lambda name, index, mode, qty_extra_charges=qty_extra_charges: self.callback(rate_extra_charges,qty_extra_charges,total_extra_charges))
@@ -680,6 +690,10 @@ class FullScreenApp(object):
 		qty_shirt.set('')
 		total_shirt.set(0)
 
+		rate_nehrujkt.set('')
+		qty_nehrujkt.set('')
+		total_nehrujkt.set(0)
+
 		rate_extra_charges.set('')
 		qty_extra_charges.set('')
 		total_extra_charges.set(0)	
@@ -721,6 +735,7 @@ class FullScreenApp(object):
 		Cross_Back3.set('')
 		Neck3.set('')
 		Cuff3.set('')
+		Half_Sleeve3.set('')
 		Arm_Round3.set('')
 
 		style1.delete('1.0','end-1c')
@@ -806,25 +821,24 @@ class FullScreenApp(object):
 
 		siz = -50
 		wid = 0
-		global e13,e14
+		global e13,e14,orderno1
 
 		self.clearVar()
 
-		# orderno=Label(mainwin,text="ORDER NO.")
-		# orderno.place(x=500,y=320)
-		# orderno1= Entry(mainwin,width=wid+10)
-		# orderno1.place(x=500,y=340)
-		Button(mainwin, text='Search',height=1,command= lambda: self.search()).place(x=500,y=370)
+		orderno=Label(mainwin,text="ORDER NO.")
+		orderno.place(x=10,y=siz+60)
+		orderno1= Entry(mainwin,width=wid+10)
+		orderno1.place(x=120,y=siz+60)
 
 		l1=Label(mainwin,text="Costomer Name")
-		l1.place(x=10,y=siz+60)
+		l1.place(x=10,y=siz+90)
 		e1= Entry(mainwin,width=wid+30,textvariable=cus_name)
-		e1.place(x=120,y=siz+60)
+		e1.place(x=120,y=siz+90)
 
 		l2=Label(mainwin,text="Address")
-		l2.place(x=10,y=siz+90)
+		l2.place(x=10,y=siz+120)
 		e2 = Entry(mainwin,width=wid+30,textvariable=cus_address)
-		e2.place(x=120,y=siz+90)
+		e2.place(x=120,y=siz+120)
 
 		l3=Label(mainwin,text="Email Id")
 		l3.place(x=10,y=siz+150)
@@ -850,6 +864,14 @@ class FullScreenApp(object):
 		l7.place(x=380,y=siz+150)
 		e7= Entry(mainwin,width=wid+22,textvariable=deli_date)
 		e7.place(x=470,y=siz+150)
+
+
+		l10=Label(mainwin,text="Rate")
+		l10.place(x=210,y=siz+190)
+		l11=Label(mainwin,text="Qty")
+		l11.place(x=290,y=siz+190)
+		l12=Label(mainwin,text="Rs.")
+
 
 		l8=Label(mainwin,text="PU")
 		l8.place(x=30,y=siz+190)
@@ -881,8 +903,12 @@ class FullScreenApp(object):
 		l813.place(x=30,y=siz+580)
 		l814=Label(mainwin,text="83")
 		l814.place(x=30,y=siz+610)
+		l814=Label(mainwin,text="84")
+		l814.place(x=30,y=siz+640)
+		# l814=Label(mainwin,text="85")
+		# l814.place(x=30,y=siz+670)
 		l815=Label(mainwin,text="91")
-		l815.place(x=30,y=siz+640)
+		l815.place(x=30,y=siz+670)
 
 
 		l9=Label(mainwin,text="Particular")
@@ -915,15 +941,13 @@ class FullScreenApp(object):
 		l913.place(x=90,y=siz+580)
 		l914=Label(mainwin,text="SHIRT")
 		l914.place(x=90,y=siz+610)
-		l915=Label(mainwin,text="ACCESSORIES")
+		l915=Label(mainwin,text="NEHRU JKT")
 		l915.place(x=90,y=siz+640)
-		l916=Label(mainwin,text="EMBROIDERY")
-		l916.place(x=90,y=siz+640)
+		# l916=Label(mainwin,text="EMBROIDERY")
+		# l916.place(x=90,y=siz+670)
 		l917=Label(mainwin,text="EXTRA CHARGES")
-		l917.place(x=90,y=siz+640)
+		l917.place(x=90,y=siz+670)
 
-		l10=Label(mainwin,text="Rate")
-		l10.place(x=210,y=siz+190)
 
 
 		e101= Entry(mainwin,width=wid+10,textvariable=rate_sherwani)
@@ -996,14 +1020,22 @@ class FullScreenApp(object):
 		e1114= Entry(mainwin,width=wid+10,textvariable=qty_shirt)
 		e1114.place(x=290,y=siz+610)
 
-		e1015= Entry(mainwin,width=wid+10,textvariable=rate_extra_charges)
+		e1015= Entry(mainwin,width=wid+10,textvariable=rate_nehrujkt)
 		e1015.place(x=210,y=siz+640)
-		e1115= Entry(mainwin,width=wid+10,textvariable=qty_extra_charges)
+		e1115= Entry(mainwin,width=wid+10,textvariable=qty_nehrujkt)
 		e1115.place(x=290,y=siz+640)
 
-		l11=Label(mainwin,text="Qty")
-		l11.place(x=290,y=siz+190)
-		l12=Label(mainwin,text="Rs.")
+		# e1016= Entry(mainwin,width=wid+10,textvariable=rate_shirt)
+		# e1016.place(x=210,y=siz+670)
+		# e1116= Entry(mainwin,width=wid+10,textvariable=qty_shirt)
+		# e1116.place(x=290,y=siz+670)
+
+
+		e1015= Entry(mainwin,width=wid+10,textvariable=rate_extra_charges)
+		e1015.place(x=210,y=siz+670)
+		e1115= Entry(mainwin,width=wid+10,textvariable=qty_extra_charges)
+		e1115.place(x=290,y=siz+670)
+
 
 		l12.place(x=370,y=siz+190)
 		e121= Entry(mainwin,width=wid+10,textvariable=total_sherwani)
@@ -1034,24 +1066,31 @@ class FullScreenApp(object):
 		e1213.place(x=370,y=siz+580)
 		e1214= Entry(mainwin,width=wid+10,textvariable=total_shirt)
 		e1214.place(x=370,y=siz+610)
+		e1217= Entry(mainwin,width=wid+10,textvariable=total_nehrujkt)
+		e1217.place(x=370,y=siz+640)
+		# e1217= Entry(mainwin,width=wid+10,textvariable=total_shirt)
+		# e1217.place(x=370,y=siz+670)
+
 		e1215= Entry(mainwin,width=wid+10,textvariable=total_extra_charges)
-		e1215.place(x=370,y=siz+640)
-		e1216= Entry(mainwin,width=wid+10,textvariable=total_grand)
-		e1216.place(x=370,y=siz+670)
+		e1215.place(x=370,y=siz+670)
 
 		l12=Label(mainwin,text="Total.")
-		l12.place(x=320,y=siz+670)
+		l12.place(x=290,y=siz+700)
+		e1216= Entry(mainwin,width=wid+10,textvariable=total_grand)
+		e1216.place(x=370,y=siz+700)
 
-		l13=Label(mainwin,text="Approximate Trail Date")
-		l13.place(x=50,y=siz+690)
-		e13= Entry(mainwin,width=wid+10)
-		e13.place(x=220,y=siz+690)
+		# l13=Label(mainwin,text="Approximate Trail Date")
+		# l13.place(x=20,y=siz+690)
+		# e13= Entry(mainwin,width=wid+10)
+		# e13.place(x=190,y=siz+690)
 
-		l14=Label(mainwin,text="Approximate Delivery Date")
-		l14.place(x=50,y=siz+720)
-		e14= Entry(mainwin,width=wid+10)
-		e14.place(x=220,y=siz+720)
+		# l14=Label(mainwin,text="Approximate Delivery Date")
+		# l14.place(x=20,y=siz+720)
+		# e14= Entry(mainwin,width=wid+10)
+		# e14.place(x=190,y=siz+720)
 
+		#search Button
+		Button(mainwin, text='Search',height=1,command= lambda: self.search()).place(x=500,y=370)
 		Button(self.mainwin, text='Save',height=2,width=5 ,command= lambda: setCustomerDetails(self.root)).place(x=450,y=650)
 		Button(self.mainwin, text='Cancel',height=2,width=9, command=self.root.destroy).place(x=520,y=650)
 
@@ -1070,63 +1109,83 @@ class FullScreenApp(object):
 		Button(self.mainwin, text='Print',height=2,width=5, command=lambda: self.printbill()).place(x=450,y=650)
 		Button(self.mainwin, text='New Order',height=2,width=9, command=lambda: self.create(self.mainwin)).place(x=520,y=650)
 
-	def getBill(self,name,rate, qty, total):
+	def getBill(self,sr,name,rate, qty, total):
 		ret_data = '''<tr>
-			            <td class="service">'''+ name + ''' </td>
+						<td class="service"> '''+ str(sr) + '''</td>
+			            <td class="unit">'''+ name + ''' </td>
 			            <td class="unit">'''+ rate + '''</td>
 			            <td class="qty">'''+ qty + '''</td>
-			            <td class="total">'''+ total + '''</td>
+			            <td class="total">'''+ str(total) + '''</td>
 			          </tr>'''
 		return ret_data
 
 	def printbill(self):
 		fi = open(os.path.join(billdir,editOrder.get().strip()+".html"),'w')
 		particulars_bill = ''
+		j = 1
 
 		if int(total_sherwani.get()) > 0:
-			particulars_bill += self.getBill("SHERWANI",rate_sherwani.get(),qty_sherwani.get(),total_sherwani.get())
+			particulars_bill += self.getBill(j,"SHERWANI",rate_sherwani.get(),qty_sherwani.get(),total_sherwani.get())
+			j=j+1
 
 		if int(total_trouser.get()) > 0:
-			particulars_bill += self.getBill("TROUSER",rate_trouser.get(),qty_trouser.get(),total_trouser.get())
+			particulars_bill += self.getBill(j,"TROUSER",rate_trouser.get(),qty_trouser.get(),total_trouser.get())
+			j=j+1
 		
 		if int(total_3pc.get()) > 0:
-			particulars_bill += self.getBill("3PC",rate_3pc.get(),qty_3pc.get(),total_3pc.get())
+			particulars_bill += self.getBill(j,"3PC",rate_3pc.get(),qty_3pc.get(),total_3pc.get())
+			j=j+1
 		
 		if int(total_kurta.get()) > 0:
-			particulars_bill += self.getBill("KURTA",rate_kurta.get(),qty_kurta.get(),total_kurta.get())
+			particulars_bill += self.getBill(j,"KURTA",rate_kurta.get(),qty_kurta.get(),total_kurta.get())
+			j=j+1
 		
 		if int(total_safari.get()) > 0:
-			particulars_bill += self.getBill("SAFARI",rate_safari.get(),qty_safari.get(),total_safari.get())
+			particulars_bill += self.getBill(j,"SAFARI",rate_safari.get(),qty_safari.get(),total_safari.get())
+			j=j+1
 		
 		if int(total_suit.get()) > 0:
-			particulars_bill += self.getBill("SUIT",rate_suit.get(),qty_suit.get(),total_suit.get())
+			particulars_bill += self.getBill(j,"SUIT",rate_suit.get(),qty_suit.get(),total_suit.get())
+			j=j+1
 		
 		if int(total_vest_jacket.get()) > 0:
-			particulars_bill += self.getBill("VEST-JACKET",rate_vest_jacket.get(),qty_vest_jacket.get(),total_vest_jacket.get())
+			particulars_bill += self.getBill(j,"VEST-JACKET",rate_vest_jacket.get(),qty_vest_jacket.get(),total_vest_jacket.get())
+			j=j+1
 		
 		if int(total_kurta_pyjm.get()) > 0:
-			particulars_bill += self.getBill("KURTA-PYJM",rate_kurta_pyjm.get(),qty_kurta_pyjm.get(),total_kurta_pyjm.get())
+			particulars_bill += self.getBill(j,"KURTA-PYJM",rate_kurta_pyjm.get(),qty_kurta_pyjm.get(),total_kurta_pyjm.get())
+			j=j+1
 		
 		if int(total_tuxedo.get()) > 0:
-			particulars_bill += self.getBill("TUXEDO",rate_tuxedo.get(),qty_tuxedo.get(),total_tuxedo.get())
+			particulars_bill += self.getBill(j,"TUXEDO",rate_tuxedo.get(),qty_tuxedo.get(),total_tuxedo.get())
+			j=j+1
 
 		if int(total_blazer_jkt.get()) > 0:
-			particulars_bill += self.getBill("BLAZER",rate_blazer_jkt.get(),qty_blazer_jkt.get(),total_blazer_jkt.get())
+			particulars_bill += self.getBill(j,"BLAZER",rate_blazer_jkt.get(),qty_blazer_jkt.get(),total_blazer_jkt.get())
+			j=j+1
 		
 		if int(total_overcoat.get()) > 0:
-			particulars_bill += self.getBill("OVERCOAT",rate_overcoat.get(),qty_overcoat.get(),total_overcoat.get())
+			particulars_bill += self.getBill(j,"OVERCOAT",rate_overcoat.get(),qty_overcoat.get(),total_overcoat.get())
+			j=j+1
 		
 		if int(total_jodhpuri.get()) > 0:
-			particulars_bill += self.getBill("JODHPURI",rate_jodhpuri.get(),qty_jodhpuri.get(),total_jodhpuri.get())
+			particulars_bill += self.getBill(j,"JODHPURI",rate_jodhpuri.get(),qty_jodhpuri.get(),total_jodhpuri.get())
+			j=j+1
 		
 		if int(total_churidar.get()) > 0:
-			particulars_bill += self.getBill("CHURIDAR",rate_churidar.get(),qty_churidar.get(),total_churidar.get())
+			particulars_bill += self.getBill(j,"CHURIDAR",rate_churidar.get(),qty_churidar.get(),total_churidar.get())
+			j=j+1
 		
 		if int(total_shirt.get()) > 0:
-			particulars_bill += self.getBill("SHIRT",rate_shirt.get(),qty_shirt.get(),total_shirt.get())
+			particulars_bill += self.getBill(j,"SHIRT",rate_shirt.get(),qty_shirt.get(),total_shirt.get())
+			j=j+1
+
+		if int(total_nehrujkt.get()) > 0:
+			particulars_bill += self.getBill(j,"NEHRU JKT",rate_nehrujkt.get(),qty_nehrujkt.get(),total_nehrujkt.get())
+			j=j+1
 		
 		if int(total_extra_charges.get()) > 0:
-			particulars_bill += self.getBill("EXTRA",rate_extra_charges.get(),qty_extra_charges.get(),total_extra_charges.get())
+			particulars_bill += self.getBill(j,"EXTRA",rate_extra_charges.get(),qty_extra_charges.get(),total_extra_charges.get())
 
 
 		str = '''<!DOCTYPE html>
@@ -1134,19 +1193,19 @@ class FullScreenApp(object):
 			  <head>
 			    <meta charset="utf-8">
 			    <title>Example 1</title>
-			    <link rel="stylesheet" href="'''+ invoicedir +'''/style.css" media="all" />
+			    <link rel="stylesheet" href="'''+ os.path.join(invoicedir,"style.css") +'''" media="all" />
 			    <style type="text/css">
 			    </style>
 			  </head>
 			  <body>
 			    <header class="clearfix">
 			      <div id="logo">
-			        <img src="../images/bt.jpg">
+			        <img src="'''+ os.path.join(imagesdir,"bt.jpg") +'''">
 			      </div>
 			      <h1>BESPOKE # INVOICE</h1>
 			      <div id="company" class="clearfix">
 			        <div>BeSpoke Tailoring</div>
-			        <div> L.G.F., F-11, Eldeco Magnum Plaza<br /> Eldeco Green, <br/> Gomti Nagar, Lucknow</div>
+			        <div> L.G.F., F-11, Eldeco Magnum Plaza<br /> Eldeco Green, <br/> Opposite Fun Mall <br/> Gomti Nagar, Lucknow</div>
         			<div>9696401314, 9935106200</div>
 			      </div>
 			      <div id="project">
@@ -1163,7 +1222,8 @@ class FullScreenApp(object):
 			      <table>
 			        <thead>
 			          <tr>
-			            <th class="service">SERVICE</th>
+			          	<th class="service">Sr.</th>
+			            <th>SERVICE</th>
 			            <th>PRICE</th>
 			            <th>QTY</th>
 			            <th>TOTAL</th>
@@ -1173,7 +1233,7 @@ class FullScreenApp(object):
 			          '''+ particulars_bill + '''
 			          
 			          <tr>
-			            <td colspan="3" class="grand total">GRAND TOTAL</td>
+			            <td colspan="4" class="grand total">GRAND TOTAL</td>
 			            <td class="grand total"> Rs.'''+ total_grand.get() +'''</td>
 			          </tr>
 			        </tbody>
@@ -1188,6 +1248,7 @@ class FullScreenApp(object):
 		fi.write(str)
 		fi.close()
 
+
 		data={}
 		data['req'] = 'success'
 		data['msg'] = "Bill Generated"
@@ -1198,7 +1259,7 @@ class FullScreenApp1(object):
 	def __init__(self, mainwin, root, **kwargs):
 		global Length1, Shoulder1, Sleeve1, Chest1,Waist1,Hip1,Neck1,Half1,Cross_back1,Cross_front1,Bicep1,Arm1
 		global Arm1,style1,Length2, Inseam2, Crotch2, Waist2, Hip2, Thigh2, Knee2, Bottom2, F_Low2, Loopsinput,Sizeinput
-		global Length3, Shoulder3, Sleeve3, Chest3, Waist3,Hip3, Cross_Front3, Cross_Back3, Neck3, Cuff3, Arm_Round3, Ready_Frontinput
+		global Length3, Shoulder3, Sleeve3, Chest3, Waist3,Hip3, Cross_Front3, Cross_Back3, Neck3, Cuff3, Half_Sleeve3, Arm_Round3, Ready_Frontinput
 		global jacket_lapel_peak,jacket_lapel_natch,jacket_lapel_shawl,jacket_vent_no,jacket_vent_side,jacket_vent_center
 		global jacket_pocket_straight,jacket_pocket_slant,jacket_pocket_patch,jacket_pocket_ticket,jacket_fit_regular,jacket_fit_slim,jacket_sleeveplacket_vent,jacket_sleeveplacket_functional
 		global trouser_belt_cut,trouser_belt_long, trouser_belt_hook, trouser_belt_button, trouser_belt_square, trouser_belt_round, trouser_belt_vshape,trouser_pleat_single
@@ -1248,6 +1309,7 @@ class FullScreenApp1(object):
 		Cross_Back3 = StringVar()
 		Neck3 = StringVar()
 		Cuff3 = StringVar()
+		Half_Sleeve3 = StringVar()
 		Arm_Round3 = StringVar()
 
 
@@ -1407,19 +1469,17 @@ class FullScreenApp1(object):
 
 		Bicep=Label(mainwin,text="Bicep")
 		Bicep.place(x=sizx+610,y=sizy+100)
-		Bicep11= Entry(mainwin,width=8,textvariable=Bicep1)
+		Bicep11= Entry(mainwin,width=6,textvariable=Bicep1)
 		Bicep11.place(x=sizx+610,y=sizy+140)
 
 		Arm_hole=Label(mainwin,text="Arm")
-		Arm_hole.place(x=sizx+670,y=sizy+85)
-
+		Arm_hole.place(x=sizx+660,y=sizy+85)
 		Arm_hole1=Label(mainwin,text="hole")
-		Arm_hole1.place(x=sizx+670,y=sizy+100)
-
+		Arm_hole1.place(x=sizx+660,y=sizy+100)
 		Round=Label(mainwin,text="Round")
-		Round.place(x=sizx+670,y=sizy+115)
-		Arm11= Entry(mainwin,width=8,textvariable=Arm1)
-		Arm11.place(x=sizx+670,y=sizy+140)
+		Round.place(x=sizx+660,y=sizy+115)
+		Arm11= Entry(mainwin,width=5,textvariable=Arm1)
+		Arm11.place(x=sizx+660,y=sizy+140)
 
 		#############################################       JACKET      #################################################
 
@@ -1475,7 +1535,8 @@ class FullScreenApp1(object):
 		cj14=Checkbutton(mainwin,text="Functional",variable=jacket_sleeveplacket_functional)
 		cj14.place(x=sizx+530,y=sizy+240)
 
-
+		jackl=Label(mainwin,text="______________________________________________________________________________________________________________",fg="red")
+		jackl.place(x=sizx+10,y=sizy+280)
 		#################################        TROUSER  ####################################
 
 		l3=Label(mainwin,text="Trouser Measurments",fg="red")
@@ -1623,6 +1684,10 @@ class FullScreenApp1(object):
 		ct30=Checkbutton(mainwin,text="Tapered",variable=trouser_fit_tapered)
 		ct30.place(x=sizx+510,y=sizy+480)
 
+
+		jackl=Label(mainwin,text="______________________________________________________________________________________________________________",fg="red")
+		jackl.place(x=sizx+10,y=sizy+574)
+		
 		############################ SHirt  #################################
 
 
@@ -1681,10 +1746,19 @@ class FullScreenApp1(object):
 		Cuff33= Entry(mainwin,width=8,textvariable=Cuff3)
 		Cuff33.place(x=sizx+550,y=sizy+650)
 
-		Arm_Rounds3=Label(mainwin,text="Arm Round")
-		Arm_Rounds3.place(x=sizx+610,y=sizy+610)
-		Arm_Round33= Entry(mainwin,width=8,textvariable=Arm_Round3)
-		Arm_Round33.place(x=sizx+610,y=sizy+650)
+		Half_Sleeves3=Label(mainwin,text="Half")
+		Half_Sleeves3.place(x=sizx+610,y=sizy+610)
+		Half_Sleeves3=Label(mainwin,text="Sleeve")
+		Half_Sleeves3.place(x=sizx+610,y=sizy+630)
+		Half_Sleeve33= Entry(mainwin,width=6,textvariable=Half_Sleeve3)
+		Half_Sleeve33.place(x=sizx+610,y=sizy+650)
+
+		Arm_Rounds3=Label(mainwin,text="Arm")
+		Arm_Rounds3.place(x=sizx+660,y=sizy+610)
+		Arm_Rounds3=Label(mainwin,text="Round")
+		Arm_Rounds3.place(x=sizx+660,y=sizy+630)
+		Arm_Round33= Entry(mainwin,width=6,textvariable=Arm_Round3)
+		Arm_Round33.place(x=sizx+660,y=sizy+650)
 
 
 		#############################################     Shirt      #################################################
@@ -1695,11 +1769,11 @@ class FullScreenApp1(object):
 
 		Bottom=Label(mainwin,text="Bottom")
 		Bottom.place(x=sizx+10,y=sizy+680)
-		ct31=Checkbutton(mainwin,text="Cut",variable=shirt_bottom_cut)
+		ct31=Checkbutton(mainwin,text="Round",variable=shirt_bottom_cut)
 		ct31.place(x=sizx+10,y=sizy+700)
-		ct32=Checkbutton(mainwin,text="Long",variable=shirt_bottom_long)
+		ct32=Checkbutton(mainwin,text="straight",variable=shirt_bottom_long)
 		ct32.place(x=sizx+10,y=sizy+720)
-		ct33=Checkbutton(mainwin,text="Hook",variable=shirt_bottom_hook)
+		ct33=Checkbutton(mainwin,text="Side Slit",variable=shirt_bottom_hook)
 		ct33.place(x=sizx+10,y=sizy+740)
 
 
@@ -1778,13 +1852,13 @@ def setCustomerDetails(root):
 	customer['email'] = cus_email.get()
 	customer['mobile'] = cus_mobile.get()
 
+	order['id'] = orderno1.get()
 	order['date_order'] = ord_date.get()
 	order['date_trail'] = trail_date.get()
 	order['date_delivery'] = deli_date.get()
-	order['Approximate_trail_date'] = e13.get()
-	order['Approximate_delivery_date'] = e14.get()
 	order['grand_total'] = total_grand.get()
-
+	# order['Approximate_trail_date'] = e13.get()
+	# order['Approximate_delivery_date'] = e14.get()
 
 	rate['sherwani'] = rate_sherwani.get()
 	rate['trouser'] = rate_trouser.get()
@@ -1800,6 +1874,7 @@ def setCustomerDetails(root):
 	rate['jodhpuri'] = rate_jodhpuri.get()
 	rate['churidar'] = rate_churidar.get()
 	rate['shirt'] = rate_shirt.get()
+	rate['nehrujkt'] = rate_nehrujkt.get()
 	rate['extra_charges'] = rate_extra_charges.get()
 
 	qty['sherwani'] = qty_sherwani.get()
@@ -1816,6 +1891,7 @@ def setCustomerDetails(root):
 	qty['jodhpuri'] = qty_jodhpuri.get()
 	qty['churidar'] = qty_churidar.get()
 	qty['shirt'] = qty_shirt.get()
+	qty['nehrujkt'] = qty_nehrujkt.get()
 	qty['extra_charges'] = qty_extra_charges.get()
 
 	total['sherwani'] = total_sherwani.get()
@@ -1832,6 +1908,7 @@ def setCustomerDetails(root):
 	total['jodhpuri'] = total_jodhpuri.get()
 	total['churidar'] = total_churidar.get()
 	total['shirt'] = total_shirt.get()
+	total['nehrujkt'] = total_nehrujkt.get()
 	total['extra_charges'] = total_extra_charges.get()
 
 	jacket_measure['basic'] = {}
@@ -1932,6 +2009,7 @@ def setCustomerDetails(root):
 	shirt_measure['basic']['cross_back'] = Cross_Back3.get()
 	shirt_measure['basic']['neck'] = Neck3.get()
 	shirt_measure['basic']['cuff'] = Cuff3.get()
+	shirt_measure['basic']['half_sleeve'] = Half_Sleeve3.get()
 	shirt_measure['basic']['arm_round'] = Arm_Round3.get()
 	shirt_measure['style_details'] = {}
 	shirt_measure['style_details']['bottom'] = {}
@@ -1995,7 +2073,7 @@ def setCustomerDetails(root):
 
 				billObj = BillDetails()
 				billData = billObj.setData(rate, qty, total, LastOrderId)
-				NotifyMsg(billData)
+				# NotifyMsg(billData)
 
 				jacketObj = MeasurementJacket()
 				jktData = jacketObj.setData(jacket_measure['basic'],LastOrderId)
